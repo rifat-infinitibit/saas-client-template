@@ -72,6 +72,35 @@ it('pages through the Notes on the Service', async () => {
 	]);
 });
 
+it('opens the page a link names', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes?page=2');
+
+	expect(await screen.findByRole('cell', { name: 'Note 21' })).toBeTruthy();
+	expect(router.state.location.searchStr).toBe('?page=2');
+});
+
+it('keeps the page in the address, where Back returns to it', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes');
+	await screen.findByRole('cell', { name: 'Note 1' });
+	fireEvent.click(
+		within(screen.getByRole('navigation', { name: 'Pages' })).getByRole(
+			'button',
+			{ name: /2/ },
+		),
+	);
+
+	await screen.findByRole('cell', { name: 'Note 21' });
+	expect(router.state.location.searchStr).toBe('?page=2');
+
+	router.history.back();
+
+	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
+});
+
 it("copies a Note's text from its row", async () => {
 	const writeText = vi.fn(() => Promise.resolve());
 

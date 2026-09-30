@@ -200,6 +200,9 @@ importers:
       '@infinitibit_gmbh/ui':
         specifier: 0.1.0-alpha.5
         version: 0.1.0-alpha.5(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@tanstack/react-pacer':
+        specifier: ^0.24.0
+        version: 0.24.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@tanstack/react-query':
         specifier: ^5.104.0
         version: 5.104.0(react@19.3.0)
@@ -224,6 +227,9 @@ importers:
       react-dom:
         specifier: ^19.3.0
         version: 19.3.0(react@19.3.0)
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
     devDependencies:
       '@commitlint/cli':
         specifier: ^21.2.3
@@ -2620,8 +2626,19 @@ packages:
     resolution: {integrity: sha512-utTS5L2OkeYUzXGohL1Z8sefu1GLNOJcxe8Hd6iIdc/Xo1K1nDB2JEp4iSFhvYh33xKC9V91TxrS8qfrpoKobQ==}
     engines: {node: '>=20.19'}
 
+  '@tanstack/pacer@0.23.0':
+    resolution: {integrity: sha512-sUA+uAebh8qeXNiaoPLsS6pawnX5zknhrWMkXNuqx18AOJeDPo5gzx3VlpABl80BiARleUEQeVpWZjElbmkrdw==}
+    engines: {node: '>=20'}
+
   '@tanstack/query-core@5.104.0':
     resolution: {integrity: sha512-JrC2r/JQlXt7khBSdUpsgxNvybzOg+aITa+ARRMlP2AFo93Y8vIqz077rp+e61mJetSZ0T6AJbwW1JHer1vrPQ==}
+
+  '@tanstack/react-pacer@0.24.0':
+    resolution: {integrity: sha512-9prCIQjDKF8Pk+ytDzAjmi2uvWaY/LlXkNTjkgMZMyA371YGfcajzpkGYg/jlea3IQp7LHwGpwvKFOBxfMAKRw==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
 
   '@tanstack/react-query@5.104.0':
     resolution: {integrity: sha512-e1TZmDCQnWIfiDVryIHeA6Idj+Lfx1hORLOhXS/l5wcgvtVD4yYqbTDl378sGQKIi2cSgb0TEMC9cKK8GGoJEw==}
@@ -7727,7 +7744,19 @@ snapshots:
 
   '@tanstack/history@1.162.4': {}
 
+  '@tanstack/pacer@0.23.0':
+    dependencies:
+      '@tanstack/devtools-event-client': 0.5.0
+      '@tanstack/store': 0.11.2
+
   '@tanstack/query-core@5.104.0': {}
+
+  '@tanstack/react-pacer@0.24.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      '@tanstack/pacer': 0.23.0
+      '@tanstack/react-store': 0.11.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      react: 19.3.0
+      react-dom: 19.3.0(react@19.3.0)
 
   '@tanstack/react-query@5.104.0(react@19.3.0)':
     dependencies:
