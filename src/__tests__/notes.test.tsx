@@ -161,6 +161,37 @@ it('says so when nothing matches the search', async () => {
 	expect(await screen.findByText('No notes match “zebra”.')).toBeTruthy();
 });
 
+it('keeps the current page on screen while the next one loads', async () => {
+	let answer: () => void = () => undefined;
+	const answered = new Promise<void>((resolve) => {
+		answer = resolve;
+	});
+	server.use(
+		// Holds the second page back, then falls through to the paged handler.
+		http.get(`${location.origin}/api/notes`, async ({ request }) => {
+			if (new URL(request.url).searchParams.get('page') === '2') await answered;
+		}),
+		pagedNotes(notes),
+	);
+
+	await renderRouter('/notes');
+	await screen.findByRole('cell', { name: 'Note 1' });
+	fireEvent.click(
+		within(screen.getByRole('navigation', { name: 'Pages' })).getByRole(
+			'button',
+			{ name: /2/ },
+		),
+	);
+
+	await new Promise((settle) => setTimeout(settle, 50));
+	expect(screen.getByRole('cell', { name: 'Note 1' })).toBeTruthy();
+	expect(screen.queryByText('Loading notes')).toBeNull();
+
+	answer();
+
+	expect(await screen.findByRole('cell', { name: 'Note 21' })).toBeTruthy();
+});
+
 it('reopens the search and page an address holds', async () => {
 	server.use(pagedNotes(notes));
 

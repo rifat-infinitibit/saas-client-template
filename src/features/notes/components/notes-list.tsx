@@ -1,4 +1,5 @@
 import { ActivityIndicator, AlertBanner, Button } from '@infinitibit_gmbh/ui';
+import { keepPreviousData } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import { createColumnHelper } from '@tanstack/react-table';
 
@@ -31,7 +32,10 @@ const notesColumns = () =>
 export function NotesList() {
 	const { page, size, search } = route.useSearch();
 	const navigate = route.useNavigate();
-	const notes = useListNotes({ page, size, search: search || undefined });
+	const notes = useListNotes(
+		{ page, size, search: search || undefined },
+		{ query: { placeholderData: keepPreviousData } },
+	);
 
 	return (
 		<section aria-labelledby="notes-title" className="flex flex-col gap-6">
