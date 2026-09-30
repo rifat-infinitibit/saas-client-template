@@ -28,7 +28,9 @@ export const listSearchDefaults = listSearchSchema.parse({});
 export function ListSearch({ label }: { label: string }) {
 	const value = useSearch({
 		strict: false,
-		select: (search) => search.search ?? '',
+		// Typed here, not from the routes, so it compiles before any list exists.
+		select: (search: Partial<z.output<typeof listSearchSchema>>) =>
+			search.search ?? '',
 	});
 	const navigate = useNavigate();
 	const [draft, setDraft] = React.useState(value);

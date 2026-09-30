@@ -1,5 +1,5 @@
-# The example Service's contract. `API_SPEC` points `pnpm api:generate` at a
-# real Service's spec instead; delete this file with the Notes feature.
+# The example Service's contract. Replace it with the real Service's spec, or
+# delete it with the Notes feature and point `API_SPEC` at that spec.
 openapi: 3.1.0
 info:
   title: Example Service

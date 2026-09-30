@@ -2,6 +2,7 @@
 
 import { http, HttpResponse } from 'msw';
 
+import { APPLICATION_NAME } from '@/application';
 import { Route } from '@/routes/session';
 import { server } from '@/testing/msw';
 import { respond } from '@/testing/respond';
@@ -11,8 +12,8 @@ const REFRESH = 'a-refresh-token';
 const PLATFORM_AUTH_URL = 'https://auth.platform.example.com';
 
 const ENDED = [
-	'__Host-saas-client-template-session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
-	'__Host-saas-client-template-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
+	`__Host-${APPLICATION_NAME}-session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
+	`__Host-${APPLICATION_NAME}-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
 ];
 
 afterEach(() => {
@@ -40,8 +41,8 @@ describe('adopting a SaaS Launch', () => {
 
 		expect(response.status).toBe(204);
 		expect(response.headers.getSetCookie()).toEqual([
-			`__Host-saas-client-template-session=${TOKEN}; HttpOnly; Secure; SameSite=Lax; Path=/`,
-			`__Host-saas-client-template-refresh=${REFRESH}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			`__Host-${APPLICATION_NAME}-session=${TOKEN}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			`__Host-${APPLICATION_NAME}-refresh=${REFRESH}; HttpOnly; Secure; SameSite=Lax; Path=/`,
 		]);
 	});
 
@@ -50,14 +51,14 @@ describe('adopting a SaaS Launch', () => {
 
 		expect(response.status).toBe(204);
 		expect(response.headers.getSetCookie()).toEqual([
-			`__Host-saas-client-template-session=${TOKEN}; HttpOnly; Secure; SameSite=Lax; Path=/`,
-			'__Host-saas-client-template-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
+			`__Host-${APPLICATION_NAME}-session=${TOKEN}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			`__Host-${APPLICATION_NAME}-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
 		]);
 	});
 });
 
 describe('adopting a Standalone arrival from gt', () => {
-	const ARRIVAL = '__Host-saas-client-template-arrival=1';
+	const ARRIVAL = `__Host-${APPLICATION_NAME}-arrival=1`;
 
 	beforeEach(() => {
 		vi.stubEnv('APP_MODE', 'standalone');
@@ -71,9 +72,9 @@ describe('adopting a Standalone arrival from gt', () => {
 
 		expect(response.status).toBe(204);
 		expect(response.headers.getSetCookie()).toEqual([
-			`__Host-saas-client-template-session=${TOKEN}; HttpOnly; Secure; SameSite=Lax; Path=/`,
-			`__Host-saas-client-template-refresh=${REFRESH}; HttpOnly; Secure; SameSite=Lax; Path=/`,
-			'__Host-saas-client-template-arrival=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
+			`__Host-${APPLICATION_NAME}-session=${TOKEN}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			`__Host-${APPLICATION_NAME}-refresh=${REFRESH}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			`__Host-${APPLICATION_NAME}-arrival=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
 		]);
 	});
 
@@ -123,7 +124,7 @@ function signOut() {
 		new Request('http://localhost/session', {
 			method: 'DELETE',
 			headers: {
-				cookie: `__Host-saas-client-template-session=${TOKEN}; __Host-saas-client-template-refresh=${REFRESH}`,
+				cookie: `__Host-${APPLICATION_NAME}-session=${TOKEN}; __Host-${APPLICATION_NAME}-refresh=${REFRESH}`,
 			},
 		}),
 	);

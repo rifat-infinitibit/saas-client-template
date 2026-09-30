@@ -1,4 +1,4 @@
-// Rename all three when starting a new Application from the template.
+// Rename both when starting a new Application from the template (README).
 
 /** How the platform and gt know this Application. */
 export const APPLICATION_NAME = 'saas-client-template';
