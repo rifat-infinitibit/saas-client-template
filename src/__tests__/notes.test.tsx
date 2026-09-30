@@ -119,7 +119,14 @@ it('keeps the page in the address, where Back returns to it', async () => {
 });
 
 it('searches once typing stops, from the first page, in the same history entry', async () => {
-	server.use(pagedNotes(notes));
+	const searched: string[] = [];
+	server.use(
+		http.get(`${location.origin}/api/notes`, ({ request }) => {
+			const search = new URL(request.url).searchParams.get('search');
+			if (search !== null) searched.push(search);
+		}),
+		pagedNotes(notes),
+	);
 
 	const router = await renderRouter('/notes?page=2');
 	await screen.findByRole('cell', { name: 'Note 21' });
@@ -149,6 +156,7 @@ it('searches once typing stops, from the first page, in the same history entry',
 	).toBe('note 2');
 	expect(router.state.location.search).not.toHaveProperty('page');
 	expect(router.history.length).toBe(entries);
+	expect(searched).toEqual(['note 2']);
 });
 
 it('says so when nothing matches the search', async () => {
