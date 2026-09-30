@@ -14,5 +14,5 @@
 	"sortImports": {
 		"internalPattern": ["@/"]
 	},
-	"ignorePatterns": ["pnpm-lock.yaml", "src/routeTree.gen.ts", "CHANGELOG.md"]
+	"ignorePatterns": ["pnpm-lock.yaml", "src/routeTree.gen.ts"]
 }
