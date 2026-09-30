@@ -2,6 +2,7 @@ import {
 	Avatar,
 	Button,
 	DropdownMenu,
+	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
@@ -16,6 +17,7 @@ import { createPortal } from 'react-dom';
 import { brandAsset, brandNames } from '@/brand';
 import { useIdentity } from '@/identity';
 import { m } from '@/paraglide/messages';
+import { getLocale, locales, setLocale } from '@/paraglide/runtime';
 
 const ActionsSlot = createContext<HTMLElement | null>(null);
 
@@ -131,6 +133,17 @@ function AccountMenu() {
 						<DropdownMenuSeparator />
 					</>
 				) : null}
+				<DropdownMenuLabel>{m.shell_language()}</DropdownMenuLabel>
+				{locales.map((locale) => (
+					<DropdownMenuCheckboxItem
+						checked={locale === getLocale()}
+						key={locale}
+						onSelect={() => void setLocale(locale)}
+					>
+						{/* Each language in its own words, so a reader of either finds theirs. */}
+						{new Intl.DisplayNames(locale, { type: 'language' }).of(locale)}
+					</DropdownMenuCheckboxItem>
+				))}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);

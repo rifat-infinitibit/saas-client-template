@@ -13,5 +13,6 @@
 	"shell_nav_home": "Home",
 	"shell_apps": "Apps",
 	"shell_notifications": "Notifications",
-	"shell_account": "Account"
+	"shell_account": "Account",
+	"shell_language": "Language"
 }

@@ -4,6 +4,7 @@ import { fireEvent, screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
 import { IDENTITY_PATH } from '@/api';
+import { cookieName } from '@/paraglide/runtime';
 import { Route as authenticated } from '@/routes/_authenticated';
 import { ShellActions } from '@/shell';
 import { server } from '@/testing/msw';
@@ -25,9 +26,21 @@ authenticated.addChildren([
 	}),
 ]);
 
+const identity = {
+	email: 'ada@example.com',
+	workspace: 'acme',
+	roles: [],
+	permissions: [],
+};
+
 beforeEach(() => {
 	vi.stubEnv('APP_MODE', 'saas');
 	holdSession();
+	server.use(
+		http.get(`${location.origin}${IDENTITY_PATH}`, () =>
+			HttpResponse.json(identity),
+		),
+	);
 });
 afterEach(() => {
 	vi.unstubAllEnvs();
@@ -66,21 +79,25 @@ it('shows Apps and Notifications, disabled until the platform has them', async (
 });
 
 it('names the Identity and its Workspace in the account menu', async () => {
-	server.use(
-		http.get(`${location.origin}${IDENTITY_PATH}`, () =>
-			HttpResponse.json({
-				email: 'ada@example.com',
-				workspace: 'acme',
-				roles: [],
-				permissions: [],
-			}),
-		),
-	);
-
 	const menu = await openAccountMenu();
 
 	expect(await within(menu).findByText('ada@example.com')).toBeTruthy();
 	expect(within(menu).getByText('acme')).toBeTruthy();
+});
+
+it('switches the language from the account menu and keeps it in the cookie', async () => {
+	const menu = await openAccountMenu();
+	const english = within(menu).getByRole('menuitemcheckbox', {
+		name: 'English',
+	});
+
+	expect(english.getAttribute('aria-checked')).toBe('true');
+
+	fireEvent.click(
+		within(menu).getByRole('menuitemcheckbox', { name: 'Deutsch' }),
+	);
+
+	expect(document.cookie).toContain(`${cookieName}=de`);
 });
 
 it("puts a Screen's actions in the top bar", async () => {
