@@ -23,15 +23,13 @@ export type ErrorType<Body> = AxiosError<Body>;
 export type BodyType<Body> = Body;
 
 /**
- * The URL, then whichever params were given, so a key getter called with
- * nothing matches every page and search of its endpoint.
+ * The URL, then whichever of the operation's arguments were given: its path
+ * params, then its query params as one object. A key getter called with nothing
+ * is the URL alone, which matches every page and search of its endpoint.
  */
 export function apiQueryKey(
-	params: Record<string, unknown> | undefined,
+	args: Record<string, unknown>,
 	{ url }: { url: string; queryOptions?: unknown },
 ): QueryKey {
-	return [
-		url,
-		...Object.values(params ?? {}).filter((value) => value !== undefined),
-	];
+	return [url, ...Object.values(args).filter((value) => value !== undefined)];
 }

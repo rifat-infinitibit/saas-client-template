@@ -21,7 +21,7 @@ No wrapper hook per endpoint and no hand-written `queryOptions` layer: a wrapper
 
 ## Invalidate inline, by prefix
 
-A query key is the URL followed by whichever params were given (`apiQueryKey`). A key getter called with no arguments is therefore the prefix of every page and search of that endpoint:
+A query key is the URL followed by whichever of the operation's arguments were given (`apiQueryKey`): `["/api/notes", { page: 2, size: 20 }]`. A key getter called with no arguments is the URL alone, so it prefixes every page and search of that endpoint:
 
 ```ts
 const queryClient = useQueryClient();
