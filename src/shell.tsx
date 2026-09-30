@@ -1,9 +1,20 @@
-import { TopNav } from '@infinitibit_gmbh/ui';
+import {
+	Avatar,
+	Button,
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+	TopNav,
+} from '@infinitibit_gmbh/ui';
+import { Icon, type IconName } from '@infinitibit_gmbh/ui/icons';
 import { Link, type LinkProps, useLoaderData } from '@tanstack/react-router';
 import React, { createContext, use } from 'react';
 import { createPortal } from 'react-dom';
 
 import { brandAsset, brandNames } from '@/brand';
+import { useIdentity } from '@/identity';
 import { m } from '@/paraglide/messages';
 
 const ActionsSlot = createContext<HTMLElement | null>(null);
@@ -57,12 +68,71 @@ export function Shell({
 						className="flex items-center gap-2 empty:hidden"
 						ref={setActionsSlot}
 					/>
+					<PlatformEntry icon="apps" label={m.shell_apps()} />
+					<PlatformEntry
+						icon="notifications_none"
+						label={m.shell_notifications()}
+					/>
+					<AccountMenu />
 				</div>
 			</TopNav>
 			<main className="flex min-w-0 flex-1 flex-col p-6">
 				<ActionsSlot value={actionsSlot}>{children}</ActionsSlot>
 			</main>
 		</div>
+	);
+}
+
+// ponytail: drawn by the frame, but the platform has no Apps or Notifications
+// behind it yet. Give it an action when it does.
+function PlatformEntry({ icon, label }: { icon: IconName; label: string }) {
+	return (
+		<Button
+			aria-label={label}
+			disabled
+			iconOnly
+			title={label}
+			variant="tertiary"
+		>
+			<Icon name={icon} />
+		</Button>
+	);
+}
+
+function AccountMenu() {
+	const identity = useIdentity();
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<button
+					aria-label={m.shell_account()}
+					className="rounded-full"
+					title={identity?.email ?? undefined}
+					type="button"
+				>
+					{/* The Identity carries no name; initials of a Workspace would read as a person's. */}
+					{identity?.email ? (
+						<Avatar name={identity.email} size="sm" />
+					) : (
+						<Avatar size="sm" type="profile" />
+					)}
+				</button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end" size="small">
+				{identity ? (
+					<>
+						<DropdownMenuLabel>
+							<span className="block truncate">{identity.email}</span>
+							{identity.workspace ? (
+								<span className="block truncate">{identity.workspace}</span>
+							) : null}
+						</DropdownMenuLabel>
+						<DropdownMenuSeparator />
+					</>
+				) : null}
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }
 

@@ -1,9 +1,12 @@
 import { Button } from '@infinitibit_gmbh/ui';
 import { createRoute } from '@tanstack/react-router';
-import { screen, within } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 
+import { IDENTITY_PATH } from '@/api';
 import { Route as authenticated } from '@/routes/_authenticated';
 import { ShellActions } from '@/shell';
+import { server } from '@/testing/msw';
 import { renderRouter } from '@/testing/render-router';
 import { holdSession } from '@/testing/session';
 
@@ -30,6 +33,15 @@ afterEach(() => {
 	vi.unstubAllEnvs();
 });
 
+async function openAccountMenu() {
+	await renderRouter('/');
+	fireEvent.keyDown(await screen.findByRole('button', { name: 'Account' }), {
+		key: 'Enter',
+	});
+
+	return screen.findByRole('menu');
+}
+
 it("draws the Application's navigation in the top bar, marking the current Screen", async () => {
 	await renderRouter('/');
 
@@ -40,6 +52,35 @@ it("draws the Application's navigation in the top bar, marking the current Scree
 
 	expect(home.getAttribute('href')).toBe('/');
 	expect(home.getAttribute('aria-current')).toBe('page');
+});
+
+it('shows Apps and Notifications, disabled until the platform has them', async () => {
+	await renderRouter('/');
+
+	const banner = await screen.findByRole('banner');
+
+	for (const name of ['Apps', 'Notifications'])
+		expect(
+			within(banner).getByRole<HTMLButtonElement>('button', { name }).disabled,
+		).toBe(true);
+});
+
+it('names the Identity and its Workspace in the account menu', async () => {
+	server.use(
+		http.get(`${location.origin}${IDENTITY_PATH}`, () =>
+			HttpResponse.json({
+				email: 'ada@example.com',
+				workspace: 'acme',
+				roles: [],
+				permissions: [],
+			}),
+		),
+	);
+
+	const menu = await openAccountMenu();
+
+	expect(await within(menu).findByText('ada@example.com')).toBeTruthy();
+	expect(within(menu).getByText('acme')).toBeTruthy();
 });
 
 it("puts a Screen's actions in the top bar", async () => {

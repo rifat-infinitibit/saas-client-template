@@ -10,5 +10,8 @@
 	"gate_action_portal": "Open tenant portal",
 	"gate_action_entra": "Sign in with Microsoft",
 	"shell_nav": "Application",
-	"shell_nav_home": "Home"
+	"shell_nav_home": "Home",
+	"shell_apps": "Apps",
+	"shell_notifications": "Notifications",
+	"shell_account": "Account"
 }

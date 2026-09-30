@@ -10,5 +10,8 @@
 	"gate_action_portal": "Mandantenportal öffnen",
 	"gate_action_entra": "Mit Microsoft anmelden",
 	"shell_nav": "Anwendung",
-	"shell_nav_home": "Startseite"
+	"shell_nav_home": "Startseite",
+	"shell_apps": "Apps",
+	"shell_notifications": "Benachrichtigungen",
+	"shell_account": "Konto"
 }
