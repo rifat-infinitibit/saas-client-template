@@ -24,7 +24,7 @@ Today the two axes coincide — Standalone is GT's, SaaS is InfinitiBit's — wh
 
 **A Brand's stylesheet only overrides `--ib-*` values the theme already declares, under `:root[data-theme='<brand>']`.** Its `@font-face` rules are the one unscoped part; `@font-face` is lazy, so the other Brand never fetches the files.
 
-**`src/brand-gt.css` stands in for a GT theme package the design system does not publish yet.** ADR 0002 sends a missing token or variant upstream rather than overriding it locally. A Brand's stylesheet is neither of those: it mints no token and restyles no component. It is a theme, the same token values under the same `[data-theme]` scope that a published theme package ships. When `@infinitibit_gmbh/theme-gt` exists, one `@import` replaces this file.
+**`src/features/brand/lib/brand-gt.css` stands in for a GT theme package the design system does not publish yet.** ADR 0002 sends a missing token or variant upstream rather than overriding it locally. A Brand's stylesheet is neither of those: it mints no token and restyles no component. It is a theme, the same token values under the same `[data-theme]` scope that a published theme package ships. When `@infinitibit_gmbh/theme-gt` exists, one `@import` replaces this file.
 
 ## Alternatives considered
 
@@ -36,4 +36,4 @@ Today the two axes coincide — Standalone is GT's, SaaS is InfinitiBit's — wh
 
 - Every image carries both Brands, including GT's licensed typeface on disk in InfinitiBit deployments.
 - A GT deployment that forgets or mistypes `APP_BRAND` ships InfinitiBit's colours and says nothing. No health check catches it; that is the accepted cost of the fallback.
-- Adding a Brand is a key in `src/brand.ts`, a directory under `public/brand/`, and a scoped stylesheet.
+- Adding a Brand is a key in `src/features/brand/lib/brand.ts`, a directory under `public/brand/`, and a scoped stylesheet.

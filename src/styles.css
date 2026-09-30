@@ -7,7 +7,7 @@
 @import '@infinitibit_gmbh/theme-default/theme.css';
 @import '@infinitibit_gmbh/ui/styles.css';
 @import '@fontsource-variable/dm-sans';
-@import './brand-gt.css';
+@import './features/brand/lib/brand-gt.css';
 
 /* `inline`, so each utility reads the token where it is used and follows the Brand. */
 @theme inline {

@@ -15,8 +15,8 @@ import { Link, type LinkProps, useLoaderData } from '@tanstack/react-router';
 import React, { createContext, use } from 'react';
 import { createPortal } from 'react-dom';
 
-import { brandAsset, brandNames } from '@/brand';
-import { useIdentity } from '@/identity';
+import { useIdentity } from '@/features/auth/hooks/identity';
+import { brandAsset, brandNames } from '@/features/brand/lib/brand';
 import { m } from '@/paraglide/messages';
 import { getLocale, locales, setLocale } from '@/paraglide/runtime';
 

@@ -1,4 +1,7 @@
-import { REFRESH_COOKIE, SESSION_COOKIE } from '@/session.server';
+import {
+	REFRESH_COOKIE,
+	SESSION_COOKIE,
+} from '@/features/auth/lib/session.server';
 
 /** A token carrying `claims`, signed by no one: the gate never verifies it. */
 export function tokenWith(claims: object) {

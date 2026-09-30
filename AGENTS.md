@@ -13,6 +13,15 @@ Default to writing zero comments. Comments are short, human, and explain _why_. 
 
 User should not have to ask you for your opinion explicitly. Always evaluate what the user is asking you to do, and voice your concerns before proceeding if you don’t think it's a good idea. If possible, propose a better solution, but you can voice concerns even without one. This applies even to direct requests to revert or simplify. Still evaluate whether your original approach was better. The user may be missing important context. If there was a solid reasoning you suggested that approach, push back with reasoning instead of silently complying.
 
+## Layout
+
+- Code a feature owns lives under `src/features/<feature>/`, split into `components/`, `hooks/` and `lib/` as the feature needs them. Split a large feature into `src/features/<feature>/<subfeature>/` only when it grows enough to need it.
+- Route files stay in `src/routes/` and stay thin: they import behaviour from a feature instead of owning it.
+- Put a component in the narrowest folder that owns it. It moves to `src/components/` only when a second feature really needs it.
+- A barrel file only for a component with its own subcomponents, exporting only what other files call.
+- Server-only modules keep the `.server.ts` suffix and live inside the feature they belong to. There is no `src/server/` folder.
+- Only app-wide entry points and configuration stay at the `src/` root.
+
 ## UI
 
 - Build every screen from `@infinitibit_gmbh/ui`. Do not copy shadcn components into the repo or add another component library (ADR 0002).

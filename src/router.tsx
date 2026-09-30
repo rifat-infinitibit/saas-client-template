@@ -4,9 +4,13 @@ import { QueryClient } from '@tanstack/react-query';
 import { createRouter } from '@tanstack/react-router';
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query';
 
-import { adoptLaunch } from './launch';
+import {
+	RouterError,
+	sessionGateFor,
+} from '@/features/auth/components/session-gate';
+import { adoptLaunch } from '@/features/auth/lib/launch';
+
 import { routeTree } from './routeTree.gen';
-import { RouterError, sessionGateFor } from './session-gate';
 
 // Module scope: the server and the browser both enter through here, and every
 // `<Icon>` needs the sprite before the first render.

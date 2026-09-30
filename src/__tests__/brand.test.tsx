@@ -2,7 +2,7 @@ import { readdirSync } from 'node:fs';
 
 import { screen } from '@testing-library/react';
 
-import { brands } from '@/brand';
+import { brands } from '@/features/brand/lib/brand';
 import { renderRouter } from '@/testing/render-router';
 
 beforeEach(() => {
