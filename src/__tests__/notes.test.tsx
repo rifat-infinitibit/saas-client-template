@@ -140,3 +140,28 @@ it('reaches the Notes from the top bar', async () => {
 
 	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
 });
+
+describe('creating a Note', () => {
+	const openNewNote = async () => {
+		fireEvent.click(await screen.findByRole('button', { name: 'New note' }));
+
+		return screen.findByRole('dialog', { name: 'New note' });
+	};
+
+	it('says nothing is wrong until the first submit, then what is', async () => {
+		server.use(pagedNotes(notes));
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		const title = within(dialog).getByRole('textbox', { name: 'Title' });
+
+		fireEvent.change(title, { target: { value: 'x' } });
+		fireEvent.change(title, { target: { value: '' } });
+		expect(title.getAttribute('aria-invalid')).not.toBe('true');
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+		expect(await within(dialog).findByText('Enter a title.')).toBeTruthy();
+		expect(title.getAttribute('aria-invalid')).toBe('true');
+	});
+});
