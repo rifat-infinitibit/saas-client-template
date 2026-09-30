@@ -125,7 +125,9 @@ function AccountMenu() {
 				{identity ? (
 					<>
 						<DropdownMenuLabel>
-							<span className="block truncate">{identity.email}</span>
+							{identity.email ? (
+								<span className="block truncate">{identity.email}</span>
+							) : null}
 							{identity.workspace ? (
 								<span className="block truncate">{identity.workspace}</span>
 							) : null}
