@@ -9,6 +9,8 @@ import { createServerFn } from '@tanstack/react-start';
 
 import { brandAsset, toBrand } from '@/brand';
 import { mode } from '@/env.server';
+import { m } from '@/paraglide/messages';
+import { getLocale } from '@/paraglide/runtime';
 
 import appCss from '@/styles.css?url';
 
@@ -50,7 +52,7 @@ export const Route = createRootRoute({
 function NotFound() {
 	return (
 		<main>
-			<AlertBanner title="Page not found" />
+			<AlertBanner title={m.not_found_title()} />
 		</main>
 	);
 }
@@ -60,7 +62,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 	const brand = useLoaderData({ from: '__root__' })?.brand ?? 'default';
 
 	return (
-		<html data-theme={brand} lang="en">
+		<html data-theme={brand} lang={getLocale()}>
 			<head>
 				<HeadContent />
 			</head>

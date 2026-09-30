@@ -11,9 +11,10 @@
 		"lint": "oxlint --deny-warnings --ignore-pattern='lint/fixtures/**'",
 		"format": "oxfmt",
 		"format:check": "oxfmt --check",
-		"type:check": "tsc",
+		"type:check": "pnpm i18n:compile && tsc",
+		"i18n:compile": "paraglide-js compile --project ./project.inlang",
 		"commit": "cz",
-		"prepare": "husky"
+		"prepare": "husky && pnpm i18n:compile"
 	},
 	"config": {
 		"commitizen": {
@@ -39,6 +40,7 @@
 	"devDependencies": {
 		"@commitlint/cli": "^21.2.3",
 		"@commitlint/config-conventional": "^21.2.3",
+		"@inlang/paraglide-js": "^2.25.4",
 		"@rolldown/plugin-babel": "^0.2.4",
 		"@shadcn/lint": "^0.2.0",
 		"@tailwindcss/vite": "^4.3.3",

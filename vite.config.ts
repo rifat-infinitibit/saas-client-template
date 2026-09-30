@@ -1,3 +1,4 @@
+import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import { devtools } from '@tanstack/devtools-vite';
@@ -13,6 +14,7 @@ const isVitest = process.env.VITEST === 'true';
 
 export default defineConfig(({ mode: viteMode }) => ({
 	plugins: [
+		paraglideVitePlugin({ project: './project.inlang' }),
 		tailwindcss(),
 		!isVitest && devtools(),
 		!isVitest && tanstackStart(),
