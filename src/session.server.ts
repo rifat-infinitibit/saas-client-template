@@ -1,5 +1,5 @@
 import { COOKIE_PREFIX } from '@/application';
-import { mode, platformAuthUrl } from '@/env.server';
+import { gtServerUrl, mode, platformAuthUrl } from '@/env.server';
 
 const SESSION_COOKIE = `${COOKIE_PREFIX}-session`;
 const REFRESH_COOKIE = `${COOKIE_PREFIX}-refresh`;
@@ -64,18 +64,134 @@ export async function adoptSession(request: Request) {
 	return new Response(null, { status: 204, headers });
 }
 
+export function readSession(request: Request) {
+	return {
+		access: cookieValue(request, SESSION_COOKIE),
+		refresh: cookieValue(request, REFRESH_COOKIE),
+	};
+}
+
 export async function endSession(request: Request) {
 	const token = cookieValue(request, SESSION_COOKIE);
 
 	// Standalone has nothing to revoke (ADR 0005).
 	if (mode() === 'saas' && token !== null) await revokeAtPlatformAuth(token);
 
-	const headers = new Headers();
+	return new Response(null, {
+		status: 204,
+		headers: dropSession(new Headers()),
+	});
+}
 
+export function dropSession(headers: Headers) {
 	headers.append('set-cookie', expired(SESSION_COOKIE));
 	headers.append('set-cookie', expired(REFRESH_COOKIE));
 
-	return new Response(null, { status: 204, headers });
+	return headers;
+}
+
+interface Pair {
+	access: string;
+	refresh: string;
+}
+
+export function holdSession(headers: Headers, pair: Pair) {
+	headers.append('set-cookie', held(SESSION_COOKIE, pair.access));
+	headers.append('set-cookie', held(REFRESH_COOKIE, pair.refresh));
+}
+
+// A request that left before the renewed cookies landed still carries the
+// spent refresh token, so the answer is kept a while for it too.
+const RETAINED_MS = 60_000;
+// In-process: two instances serving one browser would each spend the token.
+// A shared store closes that once there are two.
+const renewals = new Map<string, Promise<Pair | null>>();
+
+/** A fresh pair for `refresh`, or null once it can renew nothing. */
+export function renewSession(refresh: string) {
+	let renewal = renewals.get(refresh);
+
+	if (!renewal) {
+		const forget = () => renewals.delete(refresh);
+
+		renewal = (mode() === 'saas' ? renewAtPlatformAuth : renewAtGt)(refresh);
+		renewals.set(refresh, renewal);
+		renewal.then(
+			(pair) => (pair ? setTimeout(forget, RETAINED_MS).unref() : forget()),
+			forget,
+		);
+	}
+
+	return renewal;
+}
+
+async function renewAtPlatformAuth(refresh: string) {
+	const url = new URL('/api/v1/auth/token/refresh', platformAuthUrl());
+
+	try {
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ refresh_token: refresh }),
+			signal: AbortSignal.timeout(10_000),
+		});
+
+		if (!response.ok) {
+			await response.body?.cancel();
+
+			return null;
+		}
+
+		const body = (await response.json()) as Record<string, unknown>;
+
+		return pairOf(body.access_token, body.refresh_token);
+	} catch {
+		return null;
+	}
+}
+
+// gt takes the refresh token only as the cookie it issued it in, and answers
+// with the pair the same way.
+async function renewAtGt(refresh: string) {
+	const url = new URL('/api/auth/sso/refresh', gtServerUrl());
+
+	try {
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: { cookie: `sso_refresh_token=${refresh}` },
+			redirect: 'manual',
+			signal: AbortSignal.timeout(10_000),
+		});
+
+		await response.body?.cancel();
+
+		if (!response.ok) return null;
+
+		const issued = new Map(
+			response.headers.getSetCookie().map((cookie) => {
+				const [name, ...value] = cookie.split(';')[0].split('=');
+
+				return [name, value.join('=')];
+			}),
+		);
+
+		return pairOf(
+			issued.get('sso_access_token'),
+			issued.get('sso_refresh_token'),
+		);
+	} catch {
+		return null;
+	}
+}
+
+// Headed for a Set-Cookie, so checked as strictly as a Launch.
+function pairOf(access: unknown, refresh: unknown): Pair | null {
+	return typeof access === 'string' &&
+		JWT.test(access) &&
+		typeof refresh === 'string' &&
+		COOKIE_SAFE.test(refresh)
+		? { access, refresh }
+		: null;
 }
 
 async function revokeAtPlatformAuth(token: string) {
