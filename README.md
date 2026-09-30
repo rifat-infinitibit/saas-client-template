@@ -1,5 +1,15 @@
 # saas-client-template
 
+## Run it with no backend
+
+```sh
+cp .env.saas.example .env
+pnpm install
+pnpm dev
+```
+
+`pnpm dev` answers the Service's paths from MSW in the browser, so the example Notes list pages with no Service running. The Session gate still wants a Session: open `http://localhost:3000/dev#token=dev.dev.dev` to Launch yourself. A Launch is checked only for the token's shape, and the mocked Service checks nothing, so you land signed in. The account menu shows no Identity, which comes from the Service.
+
 ## Branches and releases
 
 Work flows `dev` → `stage` → `main`. `dev` is the default branch.

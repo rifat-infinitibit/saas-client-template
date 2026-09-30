@@ -15,5 +15,17 @@
 	"shell_notifications": "Notifications",
 	"shell_account": "Account",
 	"shell_language": "Language",
-	"shell_sign_out": "Sign out"
+	"shell_sign_out": "Sign out",
+	"shell_nav_notes": "Notes",
+	"notes_title": "Notes",
+	"notes_column_title": "Title",
+	"notes_column_body": "Text",
+	"notes_column_created": "Created",
+	"notes_empty": "No notes yet.",
+	"notes_error": "The notes could not be loaded.",
+	"notes_loading": "Loading notes",
+	"notes_copy": "Copy text",
+	"notes_copy_label": "Copy text of {title}",
+	"data_table_actions": "Actions",
+	"data_table_pages": "Pages"
 }

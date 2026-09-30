@@ -30,6 +30,11 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 - Icons come only from the design system's `<Icon>` (`@infinitibit_gmbh/ui/icons`). No other icon package.
 - Render conditionally with a ternary, never `&&` in JSX: a falsy number renders as `0`.
 
+## Data
+
+- Screens call the orval-generated hooks directly; a feature hook only when shared or composite. Invalidate inline by the generated key prefix. Errors are handled centrally. Tests mock the Service at HTTP with MSW, never the hooks. See `docs/agents/data-fetching.md`.
+- Regenerate with `pnpm api:generate`; never edit `src/features/api/generated/`.
+
 ## Checks
 
 `pnpm lint` (oxlint, type-aware), `pnpm format` (oxfmt), `pnpm type:check`, `pnpm test`, `pnpm build`. Commits are Conventional Commits (`pnpm commit` prompts); branches are `type/scope/slug`. oxlint and oxfmt replace ESLint and Prettier (ADR 0001).

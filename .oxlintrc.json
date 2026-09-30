@@ -15,7 +15,8 @@
 		".nitro/",
 		".tanstack/",
 		".claude/",
-		"src/routeTree.gen.ts"
+		"src/routeTree.gen.ts",
+		"src/features/api/generated/"
 	],
 	"rules": {
 		"constructor-super": "error",
