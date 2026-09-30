@@ -432,7 +432,12 @@
 			"plugins": ["import"]
 		},
 		{
-			"files": ["*.config.ts", "*.config.mjs", "lint/plugin.js"],
+			"files": [
+				"*.config.ts",
+				"*.config.mjs",
+				"lint/plugin.js",
+				"src/server.ts"
+			],
 			"rules": {
 				"import/no-default-export": "off"
 			},

@@ -1,6 +1,9 @@
 import { AlertBanner } from '@infinitibit_gmbh/ui';
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 
+import { m } from '@/paraglide/messages';
+import { getLocale } from '@/paraglide/runtime';
+
 import appCss from '@/styles.css?url';
 
 export const Route = createRootRoute({
@@ -19,14 +22,14 @@ export const Route = createRootRoute({
 function NotFound() {
 	return (
 		<main>
-			<AlertBanner title="Page not found" />
+			<AlertBanner title={m.not_found_title()} />
 		</main>
 	);
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en">
+		<html lang={getLocale()}>
 			<head>
 				<HeadContent />
 			</head>
