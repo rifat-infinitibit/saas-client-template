@@ -14,5 +14,6 @@
 	"shell_apps": "Apps",
 	"shell_notifications": "Notifications",
 	"shell_account": "Account",
-	"shell_language": "Language"
+	"shell_language": "Language",
+	"shell_sign_out": "Sign out"
 }

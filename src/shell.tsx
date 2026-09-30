@@ -4,6 +4,7 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
+	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
@@ -144,9 +145,21 @@ function AccountMenu() {
 						{new Intl.DisplayNames(locale, { type: 'language' }).of(locale)}
 					</DropdownMenuCheckboxItem>
 				))}
+				<DropdownMenuSeparator />
+				{/* Offered whatever the Identity read returned: a refused one still needs its way out. */}
+				<DropdownMenuItem onSelect={() => void signOut()}>
+					{m.shell_sign_out()}
+				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
+}
+
+async function signOut() {
+	// The document load follows either way: the cookies may be gone even if the
+	// answer is not, and the gate is the place to retry from.
+	await fetch('/session', { method: 'DELETE' }).catch(() => undefined);
+	location.assign('/');
 }
 
 // ponytail: the design system ships no nav item, so this one is written from

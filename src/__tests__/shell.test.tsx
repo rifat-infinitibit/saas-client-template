@@ -1,6 +1,6 @@
 import { Button } from '@infinitibit_gmbh/ui';
 import { createRoute } from '@tanstack/react-router';
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
 import { IDENTITY_PATH } from '@/api';
@@ -98,6 +98,25 @@ it('switches the language from the account menu and keeps it in the cookie', asy
 	);
 
 	expect(document.cookie).toContain(`${cookieName}=de`);
+});
+
+it('signs out through the Session route', async () => {
+	const ended = vi.fn();
+
+	server.use(
+		http.delete(`${location.origin}/session`, () => {
+			ended();
+			return new HttpResponse(null, { status: 204 });
+		}),
+	);
+
+	const menu = await openAccountMenu();
+
+	fireEvent.click(within(menu).getByRole('menuitem', { name: 'Sign out' }));
+
+	await waitFor(() => {
+		expect(ended).toHaveBeenCalledOnce();
+	});
 });
 
 it("puts a Screen's actions in the top bar", async () => {
