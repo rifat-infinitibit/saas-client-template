@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { adoptSession, endSession } from '@/session.server';
+import { adoptSession, endSession } from '@/features/auth/lib/session.server';
 
 // Not under `/api`, which is forwarded to the Service.
 export const Route = createFileRoute('/session')({

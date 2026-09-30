@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { IDENTITY_PATH, type Identity } from '@/api';
+import { IDENTITY_PATH, type Identity } from '@/features/api/lib/api';
 
 // By hand: the proxy shapes the Identity, so no Service spec describes it.
 export function useIdentity() {

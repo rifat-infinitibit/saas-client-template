@@ -2,10 +2,10 @@ import { Outlet, createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 
+import { SessionGate } from '@/features/auth/components/session-gate';
+import { hasLiveSession } from '@/features/auth/lib/session.server';
+import { Shell } from '@/features/shell/components/shell';
 import { m } from '@/paraglide/messages';
-import { SessionGate } from '@/session-gate';
-import { hasLiveSession } from '@/session.server';
-import { Shell } from '@/shell';
 
 const readLiveSession = createServerFn({ method: 'GET' }).handler(() =>
 	hasLiveSession(getRequest()),

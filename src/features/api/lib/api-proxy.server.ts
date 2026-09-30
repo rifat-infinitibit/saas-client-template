@@ -1,12 +1,16 @@
-import { FORWARDED_TAGS, IDENTITY_PATH, type Identity } from '@/api';
 import { FACADE_PREFIX } from '@/application';
 import { gtServerUrl, mode, serviceUrl } from '@/env.server';
+import {
+	FORWARDED_TAGS,
+	IDENTITY_PATH,
+	type Identity,
+} from '@/features/api/lib/api';
 import {
 	dropSession,
 	holdSession,
 	readSession,
 	renewSession,
-} from '@/session.server';
+} from '@/features/auth/lib/session.server';
 
 // Anything else could carry a credential or a claim the Service would believe.
 const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type'];

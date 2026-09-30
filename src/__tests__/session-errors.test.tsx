@@ -3,8 +3,8 @@ import { createRoute } from '@tanstack/react-router';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
-import { IDENTITY_PATH } from '@/api';
-import { useIdentity } from '@/identity';
+import { IDENTITY_PATH } from '@/features/api/lib/api';
+import { useIdentity } from '@/features/auth/hooks/identity';
 import { Route as root } from '@/routes/__root';
 import { server } from '@/testing/msw';
 import { renderRouter } from '@/testing/render-router';

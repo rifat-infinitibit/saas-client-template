@@ -3,10 +3,10 @@ import { createRoute } from '@tanstack/react-router';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
-import { IDENTITY_PATH } from '@/api';
+import { IDENTITY_PATH } from '@/features/api/lib/api';
+import { ShellActions } from '@/features/shell/components/shell';
 import { cookieName } from '@/paraglide/runtime';
 import { Route as authenticated } from '@/routes/_authenticated';
-import { ShellActions } from '@/shell';
 import { server } from '@/testing/msw';
 import { renderRouter } from '@/testing/render-router';
 import { holdSession } from '@/testing/session';

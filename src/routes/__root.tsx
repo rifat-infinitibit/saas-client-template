@@ -7,8 +7,8 @@ import {
 } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 
-import { brandAsset, toBrand } from '@/brand';
 import { mode } from '@/env.server';
+import { brandAsset, toBrand } from '@/features/brand/lib/brand';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 

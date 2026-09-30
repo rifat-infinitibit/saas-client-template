@@ -5,7 +5,7 @@ import {
 	useLoaderData,
 } from '@tanstack/react-router';
 
-import { brandAsset, brandNames } from '@/brand';
+import { brandAsset, brandNames } from '@/features/brand/lib/brand';
 import { m } from '@/paraglide/messages';
 
 export type GateState = 'no-session' | 'not-provisioned';
