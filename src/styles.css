@@ -1,0 +1,7 @@
+/* The design system's components live in `ib-components`; declared first so
+   Tailwind's utilities still outrank them. */
+@layer ib-components, theme, base, components, utilities;
+
+@import 'tailwindcss';
+@import '@infinitibit_gmbh/theme-default/theme.css';
+@import '@infinitibit_gmbh/ui/styles.css';

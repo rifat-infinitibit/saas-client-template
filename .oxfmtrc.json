@@ -1,0 +1,18 @@
+{
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"singleQuote": true,
+	"endOfLine": "lf",
+	"useTabs": true,
+	"semi": true,
+	"trailingComma": "all",
+	"printWidth": 80,
+	"sortPackageJson": false,
+	"sortTailwindcss": {
+		"stylesheet": "./src/styles.css",
+		"functions": ["cn", "cva"]
+	},
+	"sortImports": {
+		"internalPattern": ["@/"]
+	},
+	"ignorePatterns": ["pnpm-lock.yaml", "src/routeTree.gen.ts", "CHANGELOG.md"]
+}
