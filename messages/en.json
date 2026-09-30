@@ -8,5 +8,12 @@
 	"gate_not_provisioned_title": "No access to this Application",
 	"gate_not_provisioned_description": "Your workspace is not set up for this Application. Ask your administrator for access.",
 	"gate_action_portal": "Open tenant portal",
-	"gate_action_entra": "Sign in with Microsoft"
+	"gate_action_entra": "Sign in with Microsoft",
+	"shell_nav": "Application",
+	"shell_nav_home": "Home",
+	"shell_apps": "Apps",
+	"shell_notifications": "Notifications",
+	"shell_account": "Account",
+	"shell_language": "Language",
+	"shell_sign_out": "Sign out"
 }

@@ -2,8 +2,10 @@ import { Outlet, createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 
+import { m } from '@/paraglide/messages';
 import { SessionGate } from '@/session-gate';
 import { hasLiveSession } from '@/session.server';
+import { Shell } from '@/shell';
 
 const readLiveSession = createServerFn({ method: 'GET' }).handler(() =>
 	hasLiveSession(getRequest()),
@@ -20,7 +22,9 @@ export const Route = createFileRoute('/_authenticated')({
 
 function Authenticated() {
 	return Route.useLoaderData().live ? (
-		<Outlet />
+		<Shell nav={[{ to: '/', label: m.shell_nav_home() }]}>
+			<Outlet />
+		</Shell>
 	) : (
 		<SessionGate state="no-session" />
 	);
