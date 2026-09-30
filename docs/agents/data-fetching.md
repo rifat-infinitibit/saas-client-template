@@ -14,8 +14,14 @@ How a Screen reads from and writes to the Service.
 ## Screens call generated hooks directly
 
 ```tsx
-const notes = useListNotes({ page, size: PAGE_SIZE });
+const { page, size, search } = route.useSearch();
+const notes = useListNotes(
+	{ page, size, search: search || undefined },
+	{ query: { placeholderData: keepPreviousData } },
+);
 ```
+
+A list's page, size and search come from the address, never component state (ADR 0008).
 
 No wrapper hook per endpoint and no hand-written `queryOptions` layer: a wrapper drifts from the generated types. Write a feature hook only when it is shared by several Screens or composes several calls. A hand-written call beside the generated client is a gap in the spec; fix the spec instead.
 

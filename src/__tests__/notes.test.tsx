@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
 import type { Note } from '@/features/api/generated/service.schemas';
@@ -41,6 +41,14 @@ const titles = () =>
 		.getAllByRole('row')
 		.map((row) => within(row).getAllByRole('cell')[0].textContent);
 
+const goToPage = (page: number) =>
+	fireEvent.click(
+		within(screen.getByRole('navigation', { name: 'Pages' })).getByRole(
+			'button',
+			{ name: new RegExp(`${page}`) },
+		),
+	);
+
 it('lists the first page of Notes from the Service', async () => {
 	server.use(pagedNotes(notes));
 
@@ -56,12 +64,7 @@ it('pages through the Notes on the Service', async () => {
 
 	await renderRouter('/notes');
 	await screen.findByRole('cell', { name: 'Note 1' });
-	fireEvent.click(
-		within(screen.getByRole('navigation', { name: 'Pages' })).getByRole(
-			'button',
-			{ name: /2/ },
-		),
-	);
+	goToPage(2);
 
 	expect(await screen.findByRole('cell', { name: 'Note 21' })).toBeTruthy();
 	expect(titles()).toEqual([
@@ -71,6 +74,175 @@ it('pages through the Notes on the Service', async () => {
 		'Note 24',
 		'Note 25',
 	]);
+});
+
+it('opens the page a link names', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes?page=2');
+
+	expect(await screen.findByRole('cell', { name: 'Note 21' })).toBeTruthy();
+	expect(router.state.location.searchStr).toBe('?page=2');
+});
+
+it('opens a malformed link at the first page, and cleans the address', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes?page=abc&size=0&search=[1]');
+
+	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
+	expect(titles()).toHaveLength(20);
+	expect(router.state.location.href).toBe('/notes');
+});
+
+it('leaves the defaults out of the address', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes?page=1&size=20');
+
+	await screen.findByRole('cell', { name: 'Note 1' });
+	expect(router.state.location.href).toBe('/notes');
+});
+
+it('keeps the page in the address, where Back returns to it', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes');
+	await screen.findByRole('cell', { name: 'Note 1' });
+	goToPage(2);
+
+	await screen.findByRole('cell', { name: 'Note 21' });
+	expect(router.state.location.searchStr).toBe('?page=2');
+
+	router.history.back();
+
+	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
+});
+
+it('searches once typing stops, from the first page, in the same history entry', async () => {
+	const searched: string[] = [];
+	server.use(
+		http.get(`${location.origin}/api/notes`, ({ request }) => {
+			const search = new URL(request.url).searchParams.get('search');
+			if (search !== null) searched.push(search);
+		}),
+		pagedNotes(notes),
+	);
+
+	const router = await renderRouter('/notes?page=2');
+	await screen.findByRole('cell', { name: 'Note 21' });
+	const entries = router.history.length;
+	const field = screen.getByRole<HTMLInputElement>('searchbox', {
+		name: 'Search notes',
+	});
+
+	for (const typed of ['n', 'no', 'not', 'note', 'note ', 'note 2'])
+		fireEvent.change(field, { target: { value: typed } });
+
+	expect(field.value).toBe('note 2');
+	expect(router.state.location.searchStr).toBe('?page=2');
+
+	await waitFor(() => expect(titles()[0]).toBe('Note 2'));
+	expect(titles()).toEqual([
+		'Note 2',
+		'Note 20',
+		'Note 21',
+		'Note 22',
+		'Note 23',
+		'Note 24',
+		'Note 25',
+	]);
+	expect(
+		new URLSearchParams(router.state.location.searchStr).get('search'),
+	).toBe('note 2');
+	expect(router.state.location.search).not.toHaveProperty('page');
+	expect(router.history.length).toBe(entries);
+	expect(searched).toEqual(['note 2']);
+});
+
+it('says so when nothing matches the search', async () => {
+	server.use(pagedNotes(notes));
+
+	await renderRouter('/notes?search=zebra');
+
+	expect(await screen.findByText('No notes match “zebra”.')).toBeTruthy();
+});
+
+it('keeps the current page on screen while the next one loads', async () => {
+	let answer: () => void = () => undefined;
+	const answered = new Promise<void>((resolve) => {
+		answer = resolve;
+	});
+	let asked = false;
+	server.use(
+		// Holds the second page back, then falls through to the paged handler.
+		http.get(`${location.origin}/api/notes`, async ({ request }) => {
+			if (new URL(request.url).searchParams.get('page') !== '2') return;
+			asked = true;
+			await answered;
+		}),
+		pagedNotes(notes),
+	);
+
+	await renderRouter('/notes');
+	await screen.findByRole('cell', { name: 'Note 1' });
+	goToPage(2);
+
+	await waitFor(() => expect(asked).toBe(true));
+	expect(screen.getByRole('cell', { name: 'Note 1' })).toBeTruthy();
+	expect(screen.queryByText('Loading notes')).toBeNull();
+
+	answer();
+
+	expect(await screen.findByRole('cell', { name: 'Note 21' })).toBeTruthy();
+});
+
+it('reopens the search and page an address holds', async () => {
+	server.use(pagedNotes(notes));
+
+	await renderRouter('/notes?page=2&search=note');
+
+	expect(await screen.findByRole('cell', { name: 'Note 21' })).toBeTruthy();
+	expect(
+		screen.getByRole<HTMLInputElement>('searchbox', { name: 'Search notes' })
+			.value,
+	).toBe('note');
+});
+
+it('follows the address when Back changes the search', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes');
+	await screen.findByRole('cell', { name: 'Note 1' });
+	await router.navigate({ to: '/notes', search: { search: 'note 2' } });
+	const field = screen.getByRole<HTMLInputElement>('searchbox', {
+		name: 'Search notes',
+	});
+	await waitFor(() => expect(field.value).toBe('note 2'));
+
+	router.history.back();
+
+	await waitFor(() => expect(field.value).toBe(''));
+	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
+});
+
+it('drops a search still being typed when Back moves away from it', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes');
+	await screen.findByRole('cell', { name: 'Note 1' });
+	await router.navigate({ to: '/notes', search: { search: 'note 1' } });
+	const field = screen.getByRole<HTMLInputElement>('searchbox', {
+		name: 'Search notes',
+	});
+	await waitFor(() => expect(field.value).toBe('note 1'));
+	fireEvent.change(field, { target: { value: 'note 2' } });
+
+	router.history.back();
+	await waitFor(() => expect(field.value).toBe(''));
+	await new Promise((settle) => setTimeout(settle, 500));
+
+	expect(router.state.location.href).toBe('/notes');
 });
 
 it("copies a Note's text from its row", async () => {
