@@ -1,4 +1,4 @@
-# ADR 0003: The Locale Comes From a Cookie, Never the URL
+# ADR 0004: The Locale Comes From a Cookie, Never the URL
 
 ## Status
 
