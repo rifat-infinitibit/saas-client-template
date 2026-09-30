@@ -1,0 +1,48 @@
+# Data fetching
+
+How a Screen reads from and writes to the Service.
+
+## The generated client
+
+`pnpm api:generate` runs orval (`orval.config.ts`) over the Service's OpenAPI spec: the committed example `openapi.yaml`, or the file or URL in `API_SPEC`. It writes `src/features/api/generated/`, which is committed, formatted by oxfmt and excluded from lint. Never edit it; regenerate.
+
+- One hook per operation, named from its summary: "List Notes" → `useListNotes`, "Create Note" → `useCreateNote`. An operation without a summary fails the generation.
+- Only the tags in `FORWARDED_TAGS` (`src/features/api/lib/api.ts`) are generated. The proxy forwards exactly those, so a hook never exists for a path the proxy refuses. A new Service tag goes into that list, which opens both.
+- The raw request functions are not exported. Every call goes through Query, and so through the cache and the Session gate.
+- The mutator, `apiRequest` in `src/features/api/lib/client.ts`, is an axios instance with **no base URL**: every call is same-origin, and only the proxy knows where the Service is. It unwraps `data` and puts a refusal's body on the error's `cause`, where the Session gate reads its `error_code`.
+
+## Screens call generated hooks directly
+
+```tsx
+const notes = useListNotes({ page, size: PAGE_SIZE });
+```
+
+No wrapper hook per endpoint and no hand-written `queryOptions` layer: a wrapper drifts from the generated types. Write a feature hook only when it is shared by several Screens or composes several calls. A hand-written call beside the generated client is a gap in the spec; fix the spec instead.
+
+## Invalidate inline, by prefix
+
+A query key is the URL followed by whichever params were given (`apiQueryKey`). A key getter called with no arguments is therefore the prefix of every page and search of that endpoint:
+
+```ts
+const queryClient = useQueryClient();
+const create = useCreateNote({
+	mutation: {
+		onSuccess: () =>
+			queryClient.invalidateQueries({ queryKey: getListNotesQueryKey() }),
+	},
+});
+```
+
+Invalidation sits in the component that owns the write, so a reader sees what a mutation refreshes. There is no central invalidation map.
+
+## Errors are handled once
+
+The QueryClient in `src/router.tsx` sets `retry` and `throwOnError` for queries and mutations from the Session gate's classifier. A Session error throws to the router's error component, which draws the gate, and is never retried. Any other error is retried (queries only) and handed back to the Screen, which says so in place: `isError` for a read, a toast for the outcome of a write. A Screen writes no `try`/`catch` for Session handling.
+
+## Mock at HTTP, never the hooks
+
+orval also generates MSW handlers (`service.msw.ts`) and faker data (`service.faker.ts`).
+
+- Tests stub the Service with those handlers on the shared MSW server (`src/testing/msw.ts`), per test, and drive the real generated client through the rendered router. Never mock a generated hook or module: that tests the mock.
+- A feature that needs its handler to behave like the Service, paging or searching, keeps that handler beside it (`src/features/notes/lib/notes-mock.ts`) and uses it in tests and in dev alike.
+- Under `vite dev` a browser worker (`src/features/api/lib/dev-service.ts`) answers the handlers listed there and lets every other request through to the proxy. Once the real Service serves a path, drop its handler from that list.
