@@ -1,8 +1,19 @@
 import { TopNav } from '@infinitibit_gmbh/ui';
 import { Link, type LinkProps, useLoaderData } from '@tanstack/react-router';
+import React, { createContext, use } from 'react';
+import { createPortal } from 'react-dom';
 
 import { brandAsset, brandNames } from '@/brand';
 import { m } from '@/paraglide/messages';
+
+const ActionsSlot = createContext<HTMLElement | null>(null);
+
+/** Puts a Screen's actions in the top bar, from anywhere in the Screen. */
+export function ShellActions({ children }: { children: React.ReactNode }) {
+	const slot = use(ActionsSlot);
+
+	return slot ? createPortal(children, slot) : null;
+}
 
 export interface NavItem {
 	to: LinkProps['to'];
@@ -18,6 +29,9 @@ export function Shell({
 	children: React.ReactNode;
 }) {
 	const { brand } = useLoaderData({ from: '__root__' });
+	const [actionsSlot, setActionsSlot] = React.useState<HTMLElement | null>(
+		null,
+	);
 
 	return (
 		<div className="flex min-h-dvh flex-col">
@@ -37,8 +51,17 @@ export function Shell({
 						<NavLink key={item.to} {...item} />
 					))}
 				</nav>
+				<div className="flex items-center gap-4">
+					{/* Hidden while empty, or its gap doubles the spacing beside it. */}
+					<div
+						className="flex items-center gap-2 empty:hidden"
+						ref={setActionsSlot}
+					/>
+				</div>
 			</TopNav>
-			<main className="flex min-w-0 flex-1 flex-col p-6">{children}</main>
+			<main className="flex min-w-0 flex-1 flex-col p-6">
+				<ActionsSlot value={actionsSlot}>{children}</ActionsSlot>
+			</main>
 		</div>
 	);
 }
