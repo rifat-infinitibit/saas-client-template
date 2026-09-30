@@ -1,6 +1,10 @@
 import { setupWorker } from 'msw/browser';
 
-import { pagedNotes, sampleNotes } from '@/features/notes/lib/notes-mock';
+import {
+	createdNotes,
+	pagedNotes,
+	sampleNotes,
+} from '@/features/notes/lib/notes-mock';
 
 /**
  * Answers the Service's paths in the browser under `vite dev`, so the template
@@ -8,7 +12,9 @@ import { pagedNotes, sampleNotes } from '@/features/notes/lib/notes-mock';
  * serves its path; anything without one goes through to the proxy.
  */
 export async function startDevService() {
-	await setupWorker(pagedNotes(sampleNotes())).start({
+	const notes = sampleNotes();
+
+	await setupWorker(pagedNotes(notes), createdNotes(notes)).start({
 		onUnhandledFrame: 'bypass',
 		quiet: true,
 	});
