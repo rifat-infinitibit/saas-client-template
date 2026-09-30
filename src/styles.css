@@ -8,6 +8,16 @@
 @import '@fontsource-variable/dm-sans';
 @import './brand-gt.css';
 
+/* `inline`, so each utility reads the token where it is used and follows the Brand. */
+@theme inline {
+	--color-secondary: var(--ib-color-text-secondary);
+	--color-link: var(--ib-color-text-link);
+	--color-info-subtle: var(--ib-color-status-info-bg);
+	--radius-lg: var(--ib-radius-lg);
+	--text-body-m: var(--ib-font-size-body-m);
+	--font-weight-semibold: var(--ib-font-weight-semibold);
+}
+
 /* The components read the Brand's face themselves; this gives it to the page. */
 @layer base {
 	html {

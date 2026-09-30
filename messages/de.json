@@ -8,5 +8,7 @@
 	"gate_not_provisioned_title": "Kein Zugriff auf diese Anwendung",
 	"gate_not_provisioned_description": "Ihr Arbeitsbereich ist für diese Anwendung nicht eingerichtet. Bitten Sie Ihre Administration um Zugriff.",
 	"gate_action_portal": "Mandantenportal öffnen",
-	"gate_action_entra": "Mit Microsoft anmelden"
+	"gate_action_entra": "Mit Microsoft anmelden",
+	"shell_nav": "Anwendung",
+	"shell_nav_home": "Startseite"
 }
