@@ -6,10 +6,7 @@ import { server } from './msw';
 vi.mock('@tanstack/react-start', async (importOriginal) => ({
 	...(await importOriginal()),
 	createServerFn: () => ({
-		handler:
-			(handler: (ctx: { data: unknown }) => unknown) =>
-			async (options?: { data?: unknown }) =>
-				await handler({ data: options?.data }),
+		handler: (handler: () => unknown) => async () => await handler(),
 	}),
 }));
 

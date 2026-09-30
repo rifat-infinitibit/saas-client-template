@@ -1,7 +1,6 @@
-/* Grant Thornton, as custom-code-client and working-paper-client wear it: the
-   primary ramp is mixed around Figma "GT Tax Intelligence tool" `general/primary`
-   (#4f2d7f) and `unofficial/border primary` (#5e2fa2). Only `--ib-*` values the
-   theme already declares are overridden here. */
+/* Stands in for a published GT theme (ADR 0003). The primary ramp is mixed
+   around Figma "GT Tax Intelligence tool" `general/primary` (#4f2d7f) and
+   `unofficial/border primary` (#5e2fa2). */
 :root[data-theme='gt'] {
 	--ib-font-family-base: 'GT Walsheim Pro', system-ui, sans-serif;
 

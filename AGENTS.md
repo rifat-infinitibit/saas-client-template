@@ -30,6 +30,8 @@ Tests drive the client through one of two seams, with every upstream stubbed by 
 - a server route called as `Request` → `Response`: `respond()` in `src/testing/respond.ts`;
 - the real router rendered at an address: `renderRouter()` in `src/testing/render-router.tsx`.
 
+Tests run without Start's compiler, so `createServerFn` handlers run in-process (`src/testing/setup.ts`) and read the `process.env` a test stubs with `vi.stubEnv`. The shim models `.handler()` only; extend it when a server function first needs `.inputValidator()` or middleware.
+
 ## Agent skills
 
 ### Issue tracker

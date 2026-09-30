@@ -24,6 +24,8 @@ Today the two axes coincide — Standalone is GT's, SaaS is InfinitiBit's — wh
 
 **A Brand's stylesheet only overrides `--ib-*` values the theme already declares, under `:root[data-theme='<brand>']`.** Its `@font-face` rules are the one unscoped part; `@font-face` is lazy, so the other Brand never fetches the files.
 
+**`src/brand-gt.css` stands in for a GT theme package the design system does not publish yet.** ADR 0002 sends a missing token or variant upstream rather than overriding it locally. A Brand's stylesheet is neither of those: it mints no token and restyles no component. It is a theme, the same token values under the same `[data-theme]` scope that a published theme package ships. When `@infinitibit_gmbh/theme-gt` exists, one `@import` replaces this file.
+
 ## Alternatives considered
 
 - **Deriving the Brand from `APP_MODE`.** Correct for every deployment today, but encodes a current coincidence as architecture.

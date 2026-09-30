@@ -13,7 +13,6 @@ export function toBrand(value: string | undefined): Brand {
 	return brands.find((brand) => brand === value) ?? 'default';
 }
 
-// Every Brand ships the same filenames under `public/brand/<brand>/`.
 export function brandAsset(
 	brand: Brand,
 	file: 'favicon.ico' | 'logo.svg' | 'mark.svg',
