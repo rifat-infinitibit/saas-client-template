@@ -3,7 +3,8 @@ import { http, HttpResponse } from 'msw';
 
 import type { Note } from '@/features/api/generated/service.schemas';
 import { IDENTITY_PATH } from '@/features/api/lib/api';
-import { pagedNotes } from '@/features/notes/lib/notes-mock';
+import { createdNotes, pagedNotes } from '@/features/notes/lib/notes-mock';
+import { cookieName } from '@/paraglide/runtime';
 import { server } from '@/testing/msw';
 import { renderRouter } from '@/testing/render-router';
 import { holdSession } from '@/testing/session';
@@ -311,4 +312,145 @@ it('reaches the Notes from the top bar', async () => {
 	);
 
 	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
+});
+
+describe('creating a Note', () => {
+	const openNewNote = async () => {
+		fireEvent.click(await screen.findByRole('button', { name: 'New note' }));
+
+		return screen.findByRole('dialog', { name: 'New note' });
+	};
+
+	it('opens ready to type the title', async () => {
+		server.use(pagedNotes(notes));
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+
+		await vi.waitFor(() =>
+			expect(document.activeElement).toBe(
+				within(dialog).getByRole('textbox', { name: 'Title' }),
+			),
+		);
+	});
+
+	it('says nothing is wrong until the first submit, then what is', async () => {
+		server.use(pagedNotes(notes));
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		const title = within(dialog).getByRole('textbox', { name: 'Title' });
+
+		fireEvent.change(title, { target: { value: 'x' } });
+		fireEvent.change(title, { target: { value: '' } });
+		expect(title.getAttribute('aria-invalid')).not.toBe('true');
+		expect(within(dialog).queryByText('Enter a title.')).toBeNull();
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+		expect(await within(dialog).findByText('Enter a title.')).toBeTruthy();
+		expect(title.getAttribute('aria-invalid')).toBe('true');
+	});
+
+	it('clears an error as soon as the field is corrected', async () => {
+		server.use(pagedNotes(notes));
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		const title = within(dialog).getByRole('textbox', { name: 'Title' });
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+		await within(dialog).findByText('Enter a title.');
+		fireEvent.change(title, { target: { value: 'Groceries' } });
+
+		await vi.waitFor(() =>
+			expect(within(dialog).queryByText('Enter a title.')).toBeNull(),
+		);
+		expect(title.getAttribute('aria-invalid')).not.toBe('true');
+
+		fireEvent.change(title, { target: { value: 'x'.repeat(201) } });
+
+		expect(
+			await within(dialog).findByText(
+				'Keep the title to 200 characters or fewer.',
+			),
+		).toBeTruthy();
+	});
+
+	it('creates the Note, says so and shows it in the list', async () => {
+		const stored = [...notes];
+		server.use(pagedNotes(stored), createdNotes(stored));
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		fireEvent.change(within(dialog).getByRole('textbox', { name: 'Title' }), {
+			target: { value: 'Groceries' },
+		});
+		fireEvent.change(within(dialog).getByRole('textbox', { name: 'Text' }), {
+			target: { value: 'Milk, eggs' },
+		});
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+		expect(await screen.findByText('Note created.')).toBeTruthy();
+		expect(await screen.findByRole('cell', { name: 'Groceries' })).toBeTruthy();
+		expect(titles()[0]).toBe('Groceries');
+		expect(screen.queryByRole('dialog')).toBeNull();
+	});
+
+	it('keeps the dialog and what was typed when the Service fails', async () => {
+		server.use(
+			pagedNotes(notes),
+			http.post(`${location.origin}/api/notes`, () =>
+				HttpResponse.json({ detail: 'Boom' }, { status: 500 }),
+			),
+		);
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		const title = within(dialog).getByRole('textbox', { name: 'Title' });
+		fireEvent.change(title, { target: { value: 'Groceries' } });
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+		expect(
+			await within(dialog).findByText('The note could not be created.'),
+		).toBeTruthy();
+		expect((title as HTMLInputElement).value).toBe('Groceries');
+	});
+
+	it('draws the Session gate when the Service refuses the create', async () => {
+		server.use(
+			pagedNotes(notes),
+			http.post(`${location.origin}/api/notes`, () =>
+				HttpResponse.json(
+					{ detail: 'Not authenticated', error_code: 'NOT_AUTHENTICATED' },
+					{ status: 401 },
+				),
+			),
+		);
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		fireEvent.change(within(dialog).getByRole('textbox', { name: 'Title' }), {
+			target: { value: 'Groceries' },
+		});
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+		expect(
+			await screen.findByRole('heading', { name: 'Sign in to continue' }),
+		).toBeTruthy();
+	});
+
+	it('says what is wrong in German under de', async () => {
+		document.cookie = `${cookieName}=de`;
+		server.use(pagedNotes(notes));
+
+		await renderRouter('/notes');
+		fireEvent.click(await screen.findByRole('button', { name: 'Neue Notiz' }));
+		const dialog = await screen.findByRole('dialog', { name: 'Neue Notiz' });
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Erstellen' }));
+
+		expect(
+			await within(dialog).findByText('Geben Sie einen Titel ein.'),
+		).toBeTruthy();
+	});
 });

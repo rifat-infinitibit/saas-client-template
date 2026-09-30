@@ -1,3 +1,5 @@
+import { toast } from 'sonner';
+
 import { server } from './msw';
 
 // Tests run without Start's compiler, which is what turns a server function
@@ -27,6 +29,8 @@ beforeAll(() => {
 });
 afterEach(() => {
 	server.resetHandlers();
+	// sonner holds its toasts at module scope, past the Toaster that drew them.
+	toast.dismiss();
 	if (typeof document !== 'undefined')
 		for (const cookie of document.cookie.split('; ').filter(Boolean))
 			document.cookie = `${cookie.split('=')[0]}=; Path=/; Secure; Max-Age=0`;

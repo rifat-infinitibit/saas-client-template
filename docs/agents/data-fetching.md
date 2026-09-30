@@ -43,7 +43,7 @@ Invalidation sits in the component that owns the write, so a reader sees what a 
 
 ## Errors are handled once
 
-The QueryClient in `src/router.tsx` sets `retry` and `throwOnError` for queries and mutations from the Session gate's classifier. A Session error throws to the router's error component, which draws the gate, and is never retried. Any other error is retried (queries only) and handed back to the Screen, which says so in place: `isError` for a read, a toast for the outcome of a write. A Screen writes no `try`/`catch` for Session handling.
+The QueryClient in `src/router.tsx` sets `retry` and `throwOnError` for queries and mutations from the Session gate's classifier. A Session error throws to the router's error component, which draws the gate, and is never retried. Any other error is retried (queries only) and handed back to the Screen, which says so in place: `isError` for a read, and for a failed write too, beside the form that can retry it. Success is a toast (`sonner`, mounted in the root), since the form it came from is gone. A Screen writes no `try`/`catch` for Session handling.
 
 ## Mock at HTTP, never the hooks
 

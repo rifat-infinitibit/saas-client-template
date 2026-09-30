@@ -29,5 +29,15 @@
 	"notes_copy": "Copy text",
 	"notes_copy_label": "Copy text of {title}",
 	"data_table_actions": "Actions",
-	"data_table_pages": "Pages"
+	"data_table_pages": "Pages",
+	"notes_new": "New note",
+	"notes_field_title": "Title",
+	"notes_field_body": "Text",
+	"notes_title_required": "Enter a title.",
+	"notes_title_too_long": "Keep the title to {max} characters or fewer.",
+	"notes_create": "Create",
+	"notes_cancel": "Cancel",
+	"notes_dialog_close": "Close",
+	"notes_created": "Note created.",
+	"notes_create_error": "The note could not be created."
 }

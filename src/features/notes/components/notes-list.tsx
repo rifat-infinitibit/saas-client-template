@@ -7,6 +7,8 @@ import { DataTable, dataTableFeatures } from '@/components/data-table';
 import { ListSearch } from '@/components/list-search';
 import { useListNotes } from '@/features/api/generated/service';
 import type { Note } from '@/features/api/generated/service.schemas';
+import { NewNoteDialog } from '@/features/notes/components/new-note-dialog';
+import { ShellActions } from '@/features/shell/components/shell';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 
@@ -39,6 +41,9 @@ export function NotesList() {
 
 	return (
 		<section aria-labelledby="notes-title" className="flex flex-col gap-6">
+			<ShellActions>
+				<NewNoteDialog />
+			</ShellActions>
 			<h1 className="text-heading-h1 font-semibold" id="notes-title">
 				{m.notes_title()}
 			</h1>

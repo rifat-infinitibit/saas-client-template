@@ -29,5 +29,15 @@
 	"notes_copy": "Text kopieren",
 	"notes_copy_label": "Text kopieren: {title}",
 	"data_table_actions": "Aktionen",
-	"data_table_pages": "Seiten"
+	"data_table_pages": "Seiten",
+	"notes_new": "Neue Notiz",
+	"notes_field_title": "Titel",
+	"notes_field_body": "Text",
+	"notes_title_required": "Geben Sie einen Titel ein.",
+	"notes_title_too_long": "Der Titel darf höchstens {max} Zeichen lang sein.",
+	"notes_create": "Erstellen",
+	"notes_cancel": "Abbrechen",
+	"notes_dialog_close": "Schließen",
+	"notes_created": "Notiz erstellt.",
+	"notes_create_error": "Die Notiz konnte nicht erstellt werden."
 }
