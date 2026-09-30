@@ -8,7 +8,7 @@ import { getRouter } from '@/router';
  * Rendered into `document` because the root route draws `<html>` itself.
  */
 export async function renderRouter(at: string) {
-	const router = getRouter();
+	const router = await getRouter();
 
 	router.update({
 		...router.options,

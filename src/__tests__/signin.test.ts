@@ -22,6 +22,7 @@ it('sends a SaaS visitor to the Tenant portal', async () => {
 
 	expect(response.status).toBe(302);
 	expect(response.headers.get('location')).toBe(PORTAL_URL);
+	expect(response.headers.getSetCookie()).toEqual([]);
 	// A deployment repointed at another portal must not be shadowed by a
 	// redirect the browser cached from the old one.
 	expect(response.headers.get('cache-control')).toBe('no-store');
@@ -38,6 +39,11 @@ it('sends a Standalone visitor to gt Entra sign-in, forcing the account prompt',
 		`${GT_URL}/api/auth/sso/login?app=saas-client-template&prompt=select_account`,
 	);
 	expect(response.headers.get('cache-control')).toBe('no-store');
+	// What gt's callback is adopted against: a link to `/auth/callback#token=…`
+	// cannot make someone else's browser hold a `__Host-` cookie set here.
+	expect(response.headers.getSetCookie()).toEqual([
+		'__Host-saas-client-template-arrival=1; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600',
+	]);
 });
 
 it.for([undefined, '', 'SAAS', 'gt'])(

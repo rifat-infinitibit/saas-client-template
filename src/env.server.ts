@@ -15,6 +15,10 @@ export function tenantPortalUrl() {
 	return url('TENANT_PORTAL_URL');
 }
 
+export function platformAuthUrl() {
+	return url('PLATFORM_AUTH_URL');
+}
+
 export function gtServerUrl() {
 	return url('GT_SERVER_URL');
 }

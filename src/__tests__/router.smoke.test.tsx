@@ -19,7 +19,8 @@ it('draws the home route from the design system', async () => {
 it('answers an address no route draws with a not-found screen', async () => {
 	vi.stubEnv('APP_MODE', 'saas');
 
-	await renderRouter('/no-such-page');
+	// Two segments: any single one is a tenant slug a Launch lands on.
+	await renderRouter('/no/such-page');
 
 	const banner = await screen.findByRole('status');
 

@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { APPLICATION_NAME } from '@/application';
 import { gtServerUrl, mode, tenantPortalUrl } from '@/env.server';
+import { ARRIVAL_SET_COOKIE } from '@/session.server';
 
 export const Route = createFileRoute('/signin')({
 	server: {
@@ -9,10 +10,14 @@ export const Route = createFileRoute('/signin')({
 			GET: () =>
 				new Response(null, {
 					status: 302,
-					headers: {
-						location: mode() === 'saas' ? tenantPortalUrl() : entraSignInUrl(),
-						'cache-control': 'no-store',
-					},
+					headers:
+						mode() === 'saas'
+							? { location: tenantPortalUrl(), 'cache-control': 'no-store' }
+							: {
+									location: entraSignInUrl(),
+									'cache-control': 'no-store',
+									'set-cookie': ARRIVAL_SET_COOKIE,
+								},
 				}),
 		},
 	},
