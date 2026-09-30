@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import { APPLICATION_NAME } from '@/application';
 import { Route } from '@/routes/signin';
 import { respond } from '@/testing/respond';
 
@@ -36,13 +37,13 @@ it('sends a Standalone visitor to gt Entra sign-in, forcing the account prompt',
 
 	expect(response.status).toBe(302);
 	expect(response.headers.get('location')).toBe(
-		`${GT_URL}/api/auth/sso/login?app=saas-client-template&prompt=select_account`,
+		`${GT_URL}/api/auth/sso/login?app=${APPLICATION_NAME}&prompt=select_account`,
 	);
 	expect(response.headers.get('cache-control')).toBe('no-store');
 	// What gt's callback is adopted against: a link to `/auth/callback#token=…`
 	// cannot make someone else's browser hold a `__Host-` cookie set here.
 	expect(response.headers.getSetCookie()).toEqual([
-		'__Host-saas-client-template-arrival=1; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600',
+		`__Host-${APPLICATION_NAME}-arrival=1; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`,
 	]);
 });
 

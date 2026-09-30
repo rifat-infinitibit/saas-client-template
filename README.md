@@ -102,7 +102,7 @@ orval reads [`openapi.yaml`](openapi.yaml), or the file or URL in `API_SPEC`, an
 
 ### Installation
 
-1.  **Create the repository** with **Use this template** on GitHub, then clone it.
+1.  **Create the repository** with **Use this template** on GitHub. Tick **Include all branches**, or create `stage` and `main` from `dev` afterwards. Then clone it.
 
 2.  **Install dependencies:**
 
@@ -129,11 +129,7 @@ orval reads [`openapi.yaml`](openapi.yaml), or the file or URL in `API_SPEC`, an
 
     The server reads these at runtime and none of them reach the browser, so one image serves every Mode and Brand.
 
-4.  **Make it your Application:**
-    - Replace `saas-client-template` everywhere with the Application's name. It names the package, the compose service, the Session cookies and the Facade prefix in [`src/application.ts`](src/application.ts). gt chooses the Facade prefix, so confirm it with gt.
-    - Replace `openapi.yaml` with the Service's spec, list the Service's tags in `FORWARDED_TAGS`, and run `pnpm api:generate`. Every operation needs a `summary`.
-    - Build your Screens under `src/features/<feature>/`, using `src/features/notes/` as the example, then delete it.
-    - Add your own domain terms to `CONTEXT.md`.
+4.  **Make it your Application.** Follow [Start a new Application](#start-a-new-application).
 
 ### Running locally
 
@@ -141,9 +137,9 @@ orval reads [`openapi.yaml`](openapi.yaml), or the file or URL in `API_SPEC`, an
 pnpm dev
 ```
 
-The app runs at `http://localhost:3000`.
+The app runs at `http://localhost:3000`, or on the `PORT` you set.
 
-`pnpm dev` answers the Service's paths from MSW in the browser, so the example Notes list works with no Service running. To Launch yourself, open `http://localhost:3000/dev#token=dev.dev.dev`. The client checks only the token's shape and the mocked Service checks nothing, so you land signed in. The account menu shows no Identity, because the Identity comes from the real Service.
+`pnpm dev` answers the Service's paths from MSW in the browser, so the example Notes list works with no Service running. To Launch yourself, open `http://localhost:3000/dev#token=dev.dev.dev`, with your own `PORT` in place of `3000`. The client checks only the token's shape and the mocked Service checks nothing, so you land signed in. The account menu shows no Identity, because the Identity comes from the real Service.
 
 ### Running with Docker
 
@@ -152,6 +148,30 @@ docker compose up -d --build
 ```
 
 The Dockerfile builds in two stages on Node 22 and runs `.output/server/index.mjs` as a non-root user, with a health check on `/`. Compose joins the external `ib-saas-platform_default` network, so start the platform first.
+
+## Start a new Application
+
+Do these in the new repository, in order.
+
+1. **Application name and cookie prefix.** Set `APPLICATION_NAME` in [`src/application.ts`](src/application.ts) to the code the platform and gt know the Application by. The cookie prefix follows from it. Set `FACADE_PREFIX` to the path gt's Facade mounts the Service under. gt chooses that path, so ask gt for it. Put the same name in `package.json`, in the service name in `compose.yaml`, which becomes the hostname on the platform network, and in the headings of `README.md` and `AGENTS.md`. Put the display name in the page `title` in `src/routes/__root.tsx` and in the heading of `CONTEXT.md`. Point `AGENTS.md` at the new repository's issues.
+2. **`PORT`.** Set the port in both `.env.*.example` files. The Tenant portal registers it in the Launch URL and gt lists it in the return URI in `SSO_APP_RETURN_URIS`, so give each Application its own. `HOST_PORT` is the port compose publishes, and `SERVICE_URL` is where the Service answers.
+3. **Service spec.** Replace `openapi.yaml` with the Service's OpenAPI spec, or run generation with `API_SPEC` set to a file or URL. Each operation needs a `summary`, because the summary names its hook.
+4. **Forwarded tags.** List the Service's tags in `FORWARDED_TAGS` in `src/features/api/lib/api.ts`. The proxy forwards only those tags and orval generates hooks only for them. Run `pnpm api:generate`.
+5. **Brand assets.** Each Brand uses the `favicon.ico`, `logo.svg` and `mark.svg` in `public/brand/<brand>/`. These belong to the company, not the Application, so replace them only if the Application ships its own. A new Brand needs those three files, its name in `src/features/brand/lib/brand.ts`, and a theme imported in `src/styles.css` the same way `brand-gt.css` is.
+6. **Nav items.** Set the `nav` list in `src/routes/_authenticated.tsx`, and put its labels in `messages/en.json` and `messages/de.json`.
+
+Then delete the Notes example and run `pnpm lint`, `pnpm type:check`, `pnpm test` and `pnpm build`.
+
+### Delete the Notes example
+
+Notes stands in for the Service until yours exists. Remove it once steps 3 and 4 point at your Service.
+
+- Delete `src/features/notes/`, `src/routes/_authenticated.notes.tsx` and `src/__tests__/notes.test.tsx`.
+- Remove the Notes nav item from `src/routes/_authenticated.tsx`. Remove `shell_nav_notes` and every `notes_*` key from `messages/en.json` and `messages/de.json`.
+- In `src/features/api/lib/dev-service.ts`, replace the Notes handlers with the `get<Service>Mock()` handlers orval generated in `src/features/api/generated/service.msw.ts`, or with none.
+- Delete `openapi.yaml` unless step 3 replaced it with your Service's spec.
+- Rewrite the Notes examples in `docs/agents/data-fetching.md` with your own feature.
+- Run `pnpm build` once. It regenerates `src/routeTree.gen.ts` without the Notes route, and the type check and the tests read that file.
 
 ## Available scripts
 
