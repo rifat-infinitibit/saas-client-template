@@ -1,2 +1,6 @@
 allowBuilds:
   esbuild: true
+
+# Our own design-system packages are used the moment they are published.
+minimumReleaseAgeExclude:
+  - '@infinitibit_gmbh/*'
