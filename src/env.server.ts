@@ -1,6 +1,4 @@
-// One reader per setting, called at the boundary that needs it: a deployment
-// fails on what that boundary reads, and a SaaS-only setting never breaks
-// Standalone. `.server.` in the name keeps this out of the client bundle.
+// Read per boundary, so a SaaS-only setting never breaks Standalone.
 
 // No default: a deployment that half-works as the Mode it did not mean is
 // worse than one that refuses to.

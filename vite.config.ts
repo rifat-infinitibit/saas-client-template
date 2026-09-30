@@ -11,21 +11,20 @@ import { defaultExclude } from 'vitest/config';
 // neither the Start server build nor nitro.
 const isVitest = process.env.VITEST === 'true';
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode: viteMode }) => ({
 	plugins: [
 		tailwindcss(),
 		!isVitest && devtools(),
 		!isVitest && tanstackStart(),
-		!isVitest && nitro(),
+		!isVitest && nitro({ plugins: ['./src/nitro/require-mode.ts'] }),
 		viteReact(),
 		babel({ presets: [reactCompilerPreset()] }),
 	],
 	resolve: { tsconfigPaths: true },
-	// The container's server reads the same `PORT`, so the Launch URL registered
-	// with the platform holds in dev too. Strict, so a busy port fails instead
-	// of quietly moving.
+	// Same `PORT`, and default, as the built server, so the registered Launch URL
+	// holds in dev.
 	server: {
-		port: Number(loadEnv(mode, process.cwd(), '').PORT) || undefined,
+		port: Number(loadEnv(viteMode, process.cwd(), '').PORT) || 3000,
 		strictPort: true,
 	},
 	test: {

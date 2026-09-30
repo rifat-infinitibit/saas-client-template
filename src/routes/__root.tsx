@@ -6,9 +6,7 @@ import { mode } from '@/env.server';
 
 import appCss from '@/styles.css?url';
 
-// The whole of what the browser learns about the Mode. The Start compiler
-// swaps the handler for an RPC stub in the client build, taking the
-// `env.server` import with it.
+// The whole of what the browser learns about the Mode.
 const readSignInWording = createServerFn({ method: 'GET' }).handler(() =>
 	mode() === 'saas' ? 'portal' : 'entra',
 );
