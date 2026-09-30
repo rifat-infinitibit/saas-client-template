@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as SessionRouteImport } from './routes/session'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
+import { Route as AuthenticatedNotesRouteImport } from './routes/_authenticated.notes'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
@@ -41,6 +42,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedNotesRoute = AuthenticatedNotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/session': typeof SessionRoute
   '/signin': typeof SigninRoute
+  '/notes': typeof AuthenticatedNotesRoute
   '/api/$': typeof ApiSplatRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
@@ -64,6 +71,7 @@ export interface FileRoutesByTo {
   '/$tenantSlug': typeof TenantSlugRoute
   '/session': typeof SessionRoute
   '/signin': typeof SigninRoute
+  '/notes': typeof AuthenticatedNotesRoute
   '/api/$': typeof ApiSplatRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/': typeof AuthenticatedIndexRoute
@@ -74,6 +82,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/session': typeof SessionRoute
   '/signin': typeof SigninRoute
+  '/_authenticated/notes': typeof AuthenticatedNotesRoute
   '/api/$': typeof ApiSplatRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -81,16 +90,29 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/$tenantSlug' | '/' | '/session' | '/signin' | '/api/$' | '/auth/callback'
+    | '/$tenantSlug'
+    | '/'
+    | '/session'
+    | '/signin'
+    | '/notes'
+    | '/api/$'
+    | '/auth/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/$tenantSlug' | '/session' | '/signin' | '/api/$' | '/auth/callback' | '/'
+    | '/$tenantSlug'
+    | '/session'
+    | '/signin'
+    | '/notes'
+    | '/api/$'
+    | '/auth/callback'
+    | '/'
   id:
     | '__root__'
     | '/$tenantSlug'
     | '/_authenticated'
     | '/session'
     | '/signin'
+    | '/_authenticated/notes'
     | '/api/$'
     | '/auth/callback'
     | '/_authenticated/'
@@ -142,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/notes': {
+      id: '/_authenticated/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof AuthenticatedNotesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/api/$': {
       id: '/api/$'
       path: '/api/$'
@@ -160,10 +189,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedNotesRoute: typeof AuthenticatedNotesRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedNotesRoute: AuthenticatedNotesRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 

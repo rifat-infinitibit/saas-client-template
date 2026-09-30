@@ -15,5 +15,17 @@
 	"shell_notifications": "Benachrichtigungen",
 	"shell_account": "Konto",
 	"shell_language": "Sprache",
-	"shell_sign_out": "Abmelden"
+	"shell_sign_out": "Abmelden",
+	"shell_nav_notes": "Notizen",
+	"notes_title": "Notizen",
+	"notes_column_title": "Titel",
+	"notes_column_body": "Text",
+	"notes_column_created": "Erstellt",
+	"notes_empty": "Noch keine Notizen.",
+	"notes_error": "Die Notizen konnten nicht geladen werden.",
+	"notes_loading": "Notizen werden geladen",
+	"notes_copy": "Text kopieren",
+	"notes_copy_label": "Text von {title} kopieren",
+	"data_table_actions": "Aktionen",
+	"data_table_pages": "Seiten"
 }

@@ -22,7 +22,12 @@ export const Route = createFileRoute('/_authenticated')({
 
 function Authenticated() {
 	return Route.useLoaderData().live ? (
-		<Shell nav={[{ to: '/', label: m.shell_nav_home() }]}>
+		<Shell
+			nav={[
+				{ to: '/', label: m.shell_nav_home() },
+				{ to: '/notes', label: m.shell_nav_notes() },
+			]}
+		>
 			<Outlet />
 		</Shell>
 	) : (
