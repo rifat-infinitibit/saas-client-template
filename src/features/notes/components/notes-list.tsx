@@ -27,7 +27,6 @@ const notesColumns = () =>
 		}),
 	]);
 
-// ponytail: the page lives in state until the list's URL state lands (#11).
 export function NotesList() {
 	const [page, setPage] = React.useState(1);
 	const notes = useListNotes({ page, size: PAGE_SIZE });

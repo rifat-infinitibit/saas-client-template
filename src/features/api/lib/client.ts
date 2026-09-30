@@ -4,7 +4,6 @@ import Axios, { type AxiosError, type AxiosRequestConfig } from 'axios';
 // No base URL: every call is same-origin, and the proxy alone knows the Service.
 const instance = Axios.create();
 
-/** orval's mutator: every generated call is sent through here. */
 export function apiRequest<T>(config: AxiosRequestConfig): Promise<T> {
 	return instance.request<T>(config).then(
 		({ data }) => data,
