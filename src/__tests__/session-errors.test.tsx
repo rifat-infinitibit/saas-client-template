@@ -160,16 +160,16 @@ describe('a query', () => {
 });
 
 describe('a mutation', () => {
-	function notesAnswer(status: number, body: object) {
+	function saveAnswer(status: number, body: object) {
 		server.use(
-			http.post(`${location.origin}/api/notes`, () =>
+			http.post(`${location.origin}/api/items`, () =>
 				HttpResponse.json(body, { status }),
 			),
 		);
 		Screen = () => {
 			const create = useMutation({
 				mutationFn: async () => {
-					const response = await fetch('/api/notes', { method: 'POST' });
+					const response = await fetch('/api/items', { method: 'POST' });
 
 					if (!response.ok) throw refusal(await response.json());
 				},
@@ -184,7 +184,7 @@ describe('a mutation', () => {
 	}
 
 	it('meets the sign-in card on a Session error', async () => {
-		notesAnswer(401, { error_code: 'NOT_AUTHENTICATED' });
+		saveAnswer(401, { error_code: 'NOT_AUTHENTICATED' });
 		await renderRouter('/');
 
 		fireEvent.click(await screen.findByRole('button', { name: 'Save' }));
@@ -193,7 +193,7 @@ describe('a mutation', () => {
 	});
 
 	it('stays on the Screen for any other error', async () => {
-		notesAnswer(422, { error_code: 'VALIDATION_ERROR' });
+		saveAnswer(422, { error_code: 'VALIDATION_ERROR' });
 		await renderRouter('/');
 
 		fireEvent.click(await screen.findByRole('button', { name: 'Save' }));

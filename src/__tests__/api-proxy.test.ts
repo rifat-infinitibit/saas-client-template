@@ -4,6 +4,8 @@ import { gzipSync } from 'node:zlib';
 
 import { http, HttpResponse } from 'msw';
 
+import { APPLICATION_NAME, FACADE_PREFIX } from '@/application';
+import { FORWARDED_TAGS } from '@/features/api/lib/api';
 import { Route } from '@/routes/api.$';
 import { server } from '@/testing/msw';
 import { respond } from '@/testing/respond';
@@ -12,11 +14,13 @@ const TOKEN = 'header.payload.signature';
 const SERVICE_URL = 'https://service.example.com';
 const PLATFORM_AUTH_URL = 'https://auth.platform.example.com';
 const GT_URL = 'https://gt.example.com';
+// Any forwarded tag, so the proxy is tested with whichever the Application has.
+const [TAG] = FORWARDED_TAGS;
 
-const SESSION = `__Host-saas-client-template-session=${TOKEN}`;
+const SESSION = `__Host-${APPLICATION_NAME}-session=${TOKEN}`;
 const ENDED = [
-	'__Host-saas-client-template-session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
-	'__Host-saas-client-template-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
+	`__Host-${APPLICATION_NAME}-session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
+	`__Host-${APPLICATION_NAME}-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
 ];
 
 afterEach(() => {
@@ -37,7 +41,7 @@ describe('forwarding to the Service in SaaS', () => {
 		const seen: Record<string, unknown>[] = [];
 
 		server.use(
-			http.post(`${SERVICE_URL}/api/notes`, async ({ request }) => {
+			http.post(`${SERVICE_URL}/api/${TAG}`, async ({ request }) => {
 				seen.push({
 					url: request.url,
 					headers: Object.fromEntries(request.headers),
@@ -48,7 +52,7 @@ describe('forwarding to the Service in SaaS', () => {
 			}),
 		);
 
-		const response = await call('/api/notes?draft=true', {
+		const response = await call(`/api/${TAG}?draft=true`, {
 			method: 'POST',
 			headers: {
 				cookie: SESSION,
@@ -61,7 +65,7 @@ describe('forwarding to the Service in SaaS', () => {
 
 		expect(seen).toEqual([
 			{
-				url: `${SERVICE_URL}/api/notes?draft=true`,
+				url: `${SERVICE_URL}/api/${TAG}?draft=true`,
 				headers: expect.objectContaining({
 					accept: 'application/json',
 					authorization: `Bearer ${TOKEN}`,
@@ -80,7 +84,7 @@ describe('forwarding to the Service in SaaS', () => {
 	it("withholds the Service's cookies and the framing fetch already undid", async () => {
 		server.use(
 			http.get(
-				`${SERVICE_URL}/api/notes`,
+				`${SERVICE_URL}/api/${TAG}`,
 				() =>
 					new HttpResponse(gzipSync(JSON.stringify({ items: [] })), {
 						headers: {
@@ -93,7 +97,9 @@ describe('forwarding to the Service in SaaS', () => {
 			),
 		);
 
-		const response = await call('/api/notes', { headers: { cookie: SESSION } });
+		const response = await call(`/api/${TAG}`, {
+			headers: { cookie: SESSION },
+		});
 
 		expect(await response.json()).toEqual({ items: [] });
 		expect(response.headers.get('content-encoding')).toBeNull();
@@ -111,11 +117,11 @@ describe('refusing what the browser may not reach', () => {
 	// An undeclared request fails the test, so these also assert nothing left.
 	it.for([
 		'/api/admin',
-		'/api/notes-archive',
+		`/api/${TAG}-archive`,
 		'/api',
 		// Decoded upstream into a path the allowlist never saw.
-		'/api/notes%2F..%2Fadmin',
-		'/api/notes/%2e%2e/admin',
+		`/api/${TAG}%2F..%2Fadmin`,
+		`/api/${TAG}/%2e%2e/admin`,
 	])('answers %s with 404', async (path) => {
 		const response = await call(path, { headers: { cookie: SESSION } });
 
@@ -124,10 +130,10 @@ describe('refusing what the browser may not reach', () => {
 
 	it('forwards a path below an allowed tag', async () => {
 		server.use(
-			http.get(`${SERVICE_URL}/api/notes/7`, () => HttpResponse.json({})),
+			http.get(`${SERVICE_URL}/api/${TAG}/7`, () => HttpResponse.json({})),
 		);
 
-		const response = await call('/api/notes/7', {
+		const response = await call(`/api/${TAG}/7`, {
 			headers: { cookie: SESSION },
 		});
 
@@ -135,8 +141,8 @@ describe('refusing what the browser may not reach', () => {
 	});
 
 	it('answers a visitor with no Session without asking the Service', async () => {
-		const response = await call('/api/notes', {
-			headers: { cookie: '__Host-saas-client-template-refresh=r1' },
+		const response = await call(`/api/${TAG}`, {
+			headers: { cookie: `__Host-${APPLICATION_NAME}-refresh=r1` },
 		});
 
 		expect(response.status).toBe(401);
@@ -159,7 +165,7 @@ describe('renewing an expired SaaS Session', () => {
 
 	// The Service knows only the renewed token.
 	function serviceAccepting(token: string) {
-		return http.get(`${SERVICE_URL}/api/notes`, ({ request }) =>
+		return http.get(`${SERVICE_URL}/api/${TAG}`, ({ request }) =>
 			request.headers.get('authorization') === `Bearer ${token}`
 				? HttpResponse.json({ items: [] })
 				: HttpResponse.json({ error_code: 'TOKEN_EXPIRED' }, { status: 401 }),
@@ -189,7 +195,7 @@ describe('renewing an expired SaaS Session', () => {
 	function withSession(refresh: string) {
 		return {
 			headers: {
-				cookie: `${SESSION}; __Host-saas-client-template-refresh=${refresh}`,
+				cookie: `${SESSION}; __Host-${APPLICATION_NAME}-refresh=${refresh}`,
 			},
 		};
 	}
@@ -197,13 +203,13 @@ describe('renewing an expired SaaS Session', () => {
 	it('renews once at Platform Auth, replays, and holds the new pair', async () => {
 		server.use(serviceAccepting(RENEWED), platformAuthRenewing('r-renew'));
 
-		const response = await call('/api/notes', withSession('r-renew'));
+		const response = await call(`/api/${TAG}`, withSession('r-renew'));
 
 		expect(response.status).toBe(200);
 		expect(await response.json()).toEqual({ items: [] });
 		expect(response.headers.getSetCookie()).toEqual([
-			`__Host-saas-client-template-session=${RENEWED}; HttpOnly; Secure; SameSite=Lax; Path=/`,
-			'__Host-saas-client-template-refresh=r-renew-next; HttpOnly; Secure; SameSite=Lax; Path=/',
+			`__Host-${APPLICATION_NAME}-session=${RENEWED}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			`__Host-${APPLICATION_NAME}-refresh=r-renew-next; HttpOnly; Secure; SameSite=Lax; Path=/`,
 		]);
 	});
 
@@ -212,7 +218,7 @@ describe('renewing an expired SaaS Session', () => {
 
 		server.use(
 			platformAuthRenewing('r-body'),
-			http.post(`${SERVICE_URL}/api/notes`, async ({ request }) => {
+			http.post(`${SERVICE_URL}/api/${TAG}`, async ({ request }) => {
 				bodies.push(await request.json());
 
 				return request.headers.get('authorization') === `Bearer ${RENEWED}`
@@ -221,7 +227,7 @@ describe('renewing an expired SaaS Session', () => {
 			}),
 		);
 
-		const response = await call('/api/notes', {
+		const response = await call(`/api/${TAG}`, {
 			method: 'POST',
 			headers: {
 				...withSession('r-body').headers,
@@ -237,7 +243,7 @@ describe('renewing an expired SaaS Session', () => {
 	it('ends the Session when Platform Auth refuses the refresh token', async () => {
 		server.use(serviceAccepting(RENEWED), platformAuthRenewing('other'));
 
-		const response = await call('/api/notes', withSession('r-refused'));
+		const response = await call(`/api/${TAG}`, withSession('r-refused'));
 
 		expect(response.status).toBe(401);
 		expect(await response.json()).toEqual({ error_code: 'TOKEN_EXPIRED' });
@@ -247,7 +253,7 @@ describe('renewing an expired SaaS Session', () => {
 	it('ends the Session when the Service refuses the renewed token too', async () => {
 		server.use(serviceAccepting('nobody'), platformAuthRenewing('r-twice'));
 
-		const response = await call('/api/notes', withSession('r-twice'));
+		const response = await call(`/api/${TAG}`, withSession('r-twice'));
 
 		expect(response.status).toBe(401);
 		expect(response.headers.getSetCookie()).toEqual(ENDED);
@@ -256,7 +262,7 @@ describe('renewing an expired SaaS Session', () => {
 	it('ends a Session that has no refresh token to renew with', async () => {
 		server.use(serviceAccepting(RENEWED));
 
-		const response = await call('/api/notes', {
+		const response = await call(`/api/${TAG}`, {
 			headers: { cookie: SESSION },
 		});
 
@@ -273,7 +279,7 @@ describe('renewing an expired SaaS Session', () => {
 		);
 
 		const responses = await Promise.all(
-			[1, 2, 3].map(() => call('/api/notes', withSession('r-shared'))),
+			[1, 2, 3].map(() => call(`/api/${TAG}`, withSession('r-shared'))),
 		);
 
 		// Platform Auth answers a spent refresh token by revoking the family.
@@ -285,7 +291,7 @@ describe('renewing an expired SaaS Session', () => {
 });
 
 describe('reaching the Service through the Facade in Standalone', () => {
-	const FACADE = `${GT_URL}/api/saas-client-template`;
+	const FACADE = `${GT_URL}${FACADE_PREFIX}`;
 	const RENEWED = 'renewed.payload.signature';
 
 	beforeEach(() => {
@@ -303,7 +309,7 @@ describe('reaching the Service through the Facade in Standalone', () => {
 		}[] = [];
 
 		server.use(
-			http.get(`${FACADE}/api/notes`, ({ request }) => {
+			http.get(`${FACADE}/api/${TAG}`, ({ request }) => {
 				seen.push({
 					url: request.url,
 					authorization: request.headers.get('authorization'),
@@ -314,7 +320,7 @@ describe('reaching the Service through the Facade in Standalone', () => {
 			}),
 		);
 
-		const response = await call('/api/notes?page=2', {
+		const response = await call(`/api/${TAG}?page=2`, {
 			headers: { cookie: SESSION },
 		});
 
@@ -322,7 +328,7 @@ describe('reaching the Service through the Facade in Standalone', () => {
 		// The Facade authenticates by gt's own cookie and ignores the bearer.
 		expect(seen).toEqual([
 			{
-				url: `${FACADE}/api/notes?page=2`,
+				url: `${FACADE}/api/${TAG}?page=2`,
 				authorization: `Bearer ${TOKEN}`,
 				cookie: `sso_access_token=${TOKEN}`,
 			},
@@ -331,7 +337,7 @@ describe('reaching the Service through the Facade in Standalone', () => {
 
 	it('renews at gt, replays, and holds the new pair', async () => {
 		server.use(
-			http.get(`${FACADE}/api/notes`, ({ request }) =>
+			http.get(`${FACADE}/api/${TAG}`, ({ request }) =>
 				request.headers.get('cookie') === `sso_access_token=${RENEWED}`
 					? HttpResponse.json({ items: [] })
 					: new HttpResponse(null, { status: 401 }),
@@ -352,23 +358,23 @@ describe('reaching the Service through the Facade in Standalone', () => {
 			),
 		);
 
-		const response = await call('/api/notes', {
+		const response = await call(`/api/${TAG}`, {
 			headers: {
-				cookie: `${SESSION}; __Host-saas-client-template-refresh=r-gt`,
+				cookie: `${SESSION}; __Host-${APPLICATION_NAME}-refresh=r-gt`,
 			},
 		});
 
 		expect(response.status).toBe(200);
 		expect(response.headers.getSetCookie()).toEqual([
-			`__Host-saas-client-template-session=${RENEWED}; HttpOnly; Secure; SameSite=Lax; Path=/`,
-			'__Host-saas-client-template-refresh=r-gt-next==; HttpOnly; Secure; SameSite=Lax; Path=/',
+			`__Host-${APPLICATION_NAME}-session=${RENEWED}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			`__Host-${APPLICATION_NAME}-refresh=r-gt-next==; HttpOnly; Secure; SameSite=Lax; Path=/`,
 		]);
 	});
 
 	it('ends the Session when gt refuses the refresh token', async () => {
 		server.use(
 			http.get(
-				`${FACADE}/api/notes`,
+				`${FACADE}/api/${TAG}`,
 				() => new HttpResponse(null, { status: 401 }),
 			),
 			http.post(
@@ -377,9 +383,9 @@ describe('reaching the Service through the Facade in Standalone', () => {
 			),
 		);
 
-		const response = await call('/api/notes', {
+		const response = await call(`/api/${TAG}`, {
 			headers: {
-				cookie: `${SESSION}; __Host-saas-client-template-refresh=r-gt-refused`,
+				cookie: `${SESSION}; __Host-${APPLICATION_NAME}-refresh=r-gt-refused`,
 			},
 		});
 
@@ -400,7 +406,7 @@ describe('serving the Identity', () => {
 							email: 'ada@example.com',
 							tenant_slug: 'acme',
 							roles: ['tenant_member'],
-							permissions: ['notes:read'],
+							permissions: ['items:read'],
 						})
 					: new HttpResponse(null, { status: 401 }),
 			),
@@ -415,7 +421,7 @@ describe('serving the Identity', () => {
 			email: 'ada@example.com',
 			workspace: 'acme',
 			roles: ['tenant_member'],
-			permissions: ['notes:read'],
+			permissions: ['items:read'],
 		});
 	});
 
@@ -485,7 +491,7 @@ it('answers 501 while SaaS has no Service to reach', async () => {
 	vi.stubEnv('APP_MODE', 'saas');
 	vi.stubEnv('SERVICE_URL', undefined);
 
-	const response = await call('/api/notes', { headers: { cookie: SESSION } });
+	const response = await call(`/api/${TAG}`, { headers: { cookie: SESSION } });
 
 	expect(response.status).toBe(501);
 	expect(response.headers.getSetCookie()).toEqual([]);
@@ -496,6 +502,6 @@ it('refuses a Service address that is not a URL, naming SERVICE_URL', async () =
 	vi.stubEnv('SERVICE_URL', 'service.example.com');
 
 	await expect(
-		call('/api/notes', { headers: { cookie: SESSION } }),
+		call(`/api/${TAG}`, { headers: { cookie: SESSION } }),
 	).rejects.toThrow(/SERVICE_URL/);
 });
