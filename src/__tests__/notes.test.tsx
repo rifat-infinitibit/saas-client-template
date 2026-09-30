@@ -40,6 +40,14 @@ const titles = () =>
 		.getAllByRole('row')
 		.map((row) => within(row).getAllByRole('cell')[0].textContent);
 
+const goToPage = (page: number) =>
+	fireEvent.click(
+		within(screen.getByRole('navigation', { name: 'Pages' })).getByRole(
+			'button',
+			{ name: new RegExp(`${page}`) },
+		),
+	);
+
 it('lists the first page of Notes from the Service', async () => {
 	server.use(pagedNotes(notes));
 
@@ -55,12 +63,7 @@ it('pages through the Notes on the Service', async () => {
 
 	await renderRouter('/notes');
 	await screen.findByRole('cell', { name: 'Note 1' });
-	fireEvent.click(
-		within(screen.getByRole('navigation', { name: 'Pages' })).getByRole(
-			'button',
-			{ name: /2/ },
-		),
-	);
+	goToPage(2);
 
 	expect(await screen.findByRole('cell', { name: 'Note 21' })).toBeTruthy();
 	expect(titles()).toEqual([
@@ -105,12 +108,7 @@ it('keeps the page in the address, where Back returns to it', async () => {
 
 	const router = await renderRouter('/notes');
 	await screen.findByRole('cell', { name: 'Note 1' });
-	fireEvent.click(
-		within(screen.getByRole('navigation', { name: 'Pages' })).getByRole(
-			'button',
-			{ name: /2/ },
-		),
-	);
+	goToPage(2);
 
 	await screen.findByRole('cell', { name: 'Note 21' });
 	expect(router.state.location.searchStr).toBe('?page=2');
@@ -166,24 +164,22 @@ it('keeps the current page on screen while the next one loads', async () => {
 	const answered = new Promise<void>((resolve) => {
 		answer = resolve;
 	});
+	let asked = false;
 	server.use(
 		// Holds the second page back, then falls through to the paged handler.
 		http.get(`${location.origin}/api/notes`, async ({ request }) => {
-			if (new URL(request.url).searchParams.get('page') === '2') await answered;
+			if (new URL(request.url).searchParams.get('page') !== '2') return;
+			asked = true;
+			await answered;
 		}),
 		pagedNotes(notes),
 	);
 
 	await renderRouter('/notes');
 	await screen.findByRole('cell', { name: 'Note 1' });
-	fireEvent.click(
-		within(screen.getByRole('navigation', { name: 'Pages' })).getByRole(
-			'button',
-			{ name: /2/ },
-		),
-	);
+	goToPage(2);
 
-	await new Promise((settle) => setTimeout(settle, 50));
+	await waitFor(() => expect(asked).toBe(true));
 	expect(screen.getByRole('cell', { name: 'Note 1' })).toBeTruthy();
 	expect(screen.queryByText('Loading notes')).toBeNull();
 
@@ -219,6 +215,25 @@ it('follows the address when Back changes the search', async () => {
 
 	await waitFor(() => expect(field.value).toBe(''));
 	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
+});
+
+it('drops a search still being typed when Back moves away from it', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes');
+	await screen.findByRole('cell', { name: 'Note 1' });
+	await router.navigate({ to: '/notes', search: { search: 'note 1' } });
+	const field = screen.getByRole<HTMLInputElement>('searchbox', {
+		name: 'Search notes',
+	});
+	await waitFor(() => expect(field.value).toBe('note 1'));
+	fireEvent.change(field, { target: { value: 'note 2' } });
+
+	router.history.back();
+	await waitFor(() => expect(field.value).toBe(''));
+	await new Promise((settle) => setTimeout(settle, 500));
+
+	expect(router.state.location.href).toBe('/notes');
 });
 
 it("copies a Note's text from its row", async () => {

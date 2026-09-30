@@ -1,6 +1,7 @@
 import { Input } from '@infinitibit_gmbh/ui';
 import { Icon } from '@infinitibit_gmbh/ui/icons';
 import { useDebouncer } from '@tanstack/react-pacer';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import React from 'react';
 import { z } from 'zod';
 
@@ -15,40 +16,40 @@ export const listSearchSchema = z.object({
 	search: z.string().default('').catch(''),
 });
 
-/**
- * For `stripSearchParams` in the route, which leaves them out of the address
- * so an untouched list is a bare URL. Called there, where it takes the route's
- * search type.
- */
+// `stripSearchParams` takes its type from the route it is called in, so each
+// route calls it with these rather than sharing one middleware.
 export const listSearchDefaults = listSearchSchema.parse({});
 
 /**
- * A list's search field. What the user types shows at once; `onSearch` hears
- * it once typing stops or the field is left, so the address and the Service
- * see one search rather than every keystroke.
+ * The current list's search field. What the user types shows at once; the
+ * address takes it once typing stops or the field is left, returning to the
+ * first page in the same navigation.
  */
-export function ListSearch({
-	label,
-	value,
-	onSearch,
-}: {
-	label: string;
-	/** The search the list shows now, from the address. */
-	value: string;
-	onSearch: (search: string) => void;
-}) {
+export function ListSearch({ label }: { label: string }) {
+	const value = useSearch({
+		strict: false,
+		select: (search) => search.search ?? '',
+	});
+	const navigate = useNavigate();
 	const [draft, setDraft] = React.useState(value);
-	const [shown, setShown] = React.useState(value);
+	const [seen, setSeen] = React.useState(value);
 	const debouncer = useDebouncer(
 		(typed: string) => {
-			if (typed.trim() !== value) onSearch(typed.trim());
+			// Back or a link replaced the draft while this waited.
+			if (typed !== draft || typed.trim() === value) return;
+			void navigate({
+				to: '.',
+				search: (previous) => ({ ...previous, search: typed.trim(), page: 1 }),
+				// Replaced, so Back leaves the list instead of retracing searches.
+				replace: true,
+				resetScroll: false,
+			});
 		},
 		{ wait: 300 },
 	);
 
-	// Back, Forward or a link changed the search underneath the field.
-	if (value !== shown) {
-		setShown(value);
+	if (value !== seen) {
+		setSeen(value);
 		if (value !== draft.trim()) setDraft(value);
 	}
 

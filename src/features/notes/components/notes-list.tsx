@@ -42,18 +42,7 @@ export function NotesList() {
 			<h1 className="text-heading-h1 font-semibold" id="notes-title">
 				{m.notes_title()}
 			</h1>
-			<ListSearch
-				label={m.notes_search()}
-				onSearch={(next) =>
-					void navigate({
-						search: (previous) => ({ ...previous, search: next, page: 1 }),
-						// Back returns to the list before the search, not to each keystroke.
-						replace: true,
-						resetScroll: false,
-					})
-				}
-				value={search}
-			/>
+			<ListSearch label={m.notes_search()} />
 			{notes.isError ? (
 				<AlertBanner title={m.notes_error()} variant="error" />
 			) : notes.data ? (
