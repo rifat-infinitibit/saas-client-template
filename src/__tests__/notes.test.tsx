@@ -81,6 +81,25 @@ it('opens the page a link names', async () => {
 	expect(router.state.location.searchStr).toBe('?page=2');
 });
 
+it('opens a malformed link at the first page, and cleans the address', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes?page=abc&size=0&search=[1]');
+
+	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
+	expect(titles()).toHaveLength(20);
+	expect(router.state.location.href).toBe('/notes');
+});
+
+it('leaves the defaults out of the address', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes?page=1&size=20');
+
+	await screen.findByRole('cell', { name: 'Note 1' });
+	expect(router.state.location.href).toBe('/notes');
+});
+
 it('keeps the page in the address, where Back returns to it', async () => {
 	server.use(pagedNotes(notes));
 
