@@ -1,0 +1,15 @@
+services:
+  # The service name is this client's hostname on the platform network.
+  saas-client-template:
+    build: .
+    env_file: .env
+    ports:
+      - ${HOST_PORT}:${PORT}
+    networks:
+      - platform
+    restart: unless-stopped
+
+networks:
+  platform:
+    name: ib-saas-platform_default
+    external: true
