@@ -47,7 +47,14 @@ export function NewNoteDialog() {
 			<DialogTrigger asChild>
 				<Button size="sm">{m.notes_new()}</Button>
 			</DialogTrigger>
-			<DialogContent closeLabel={m.notes_dialog_close()}>
+			<DialogContent
+				closeLabel={m.notes_dialog_close()}
+				// The body is a tab stop, so Radix would focus it before the first field.
+				onOpenAutoFocus={(event) => {
+					event.preventDefault();
+					document.getElementById('note-title')?.focus();
+				}}
+			>
 				{/* Inside the content, so every opening starts from an empty form. */}
 				<NewNoteForm onCreated={() => setOpen(false)} />
 			</DialogContent>

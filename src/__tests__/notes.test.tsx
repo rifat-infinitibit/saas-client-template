@@ -149,6 +149,19 @@ describe('creating a Note', () => {
 		return screen.findByRole('dialog', { name: 'New note' });
 	};
 
+	it('opens ready to type the title', async () => {
+		server.use(pagedNotes(notes));
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+
+		await vi.waitFor(() =>
+			expect(document.activeElement).toBe(
+				within(dialog).getByRole('textbox', { name: 'Title' }),
+			),
+		);
+	});
+
 	it('says nothing is wrong until the first submit, then what is', async () => {
 		server.use(pagedNotes(notes));
 
