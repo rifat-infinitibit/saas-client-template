@@ -16,21 +16,10 @@ const expired = (name: string) => `${name}=; ${ATTRIBUTES}; Max-Age=0`;
 const JWT = /^[\w-]+\.[\w-]+\.[\w-]+$/;
 const COOKIE_SAFE = /^[\w.~+/=-]+$/;
 
-/**
- * Left by `/signin` on a browser it sends to gt, and spent by adoption. gt's
- * callback address is public, so a link to it can carry anyone's pair; what the
- * link cannot carry is a `__Host-` cookie this origin set.
- *
- * ponytail: presence, not binding. Binding the pair to this sign-in needs gt to
- * echo a nonce back in the fragment.
- */
-export function beginArrival(headers: Headers) {
-	// Entra's authorization codes last ten minutes; a sign-in past that has failed.
-	headers.append(
-		'set-cookie',
-		`${ARRIVAL_COOKIE}=1; ${ATTRIBUTES}; Max-Age=600`,
-	);
-}
+// Left by `/signin` on a browser it sends to gt, spent by adoption: a link to
+// gt's public callback can carry anyone's pair, but not a `__Host-` cookie
+// this origin set. Ten minutes, as long as Entra's authorization code lasts.
+export const ARRIVAL_SET_COOKIE = `${ARRIVAL_COOKIE}=1; ${ATTRIBUTES}; Max-Age=600`;
 
 const refused = () => new Response(null, { status: 400 });
 
@@ -78,9 +67,7 @@ export async function adoptSession(request: Request) {
 export async function endSession(request: Request) {
 	const token = cookieValue(request, SESSION_COOKIE);
 
-	// Forgetting it here alone would leave Platform Auth honouring the refresh
-	// token for its whole lifetime. gt has nothing to revoke: its tokens are
-	// stateless and its own `/logout` only clears gt's cookies.
+	// Standalone has nothing to revoke (ADR 0005).
 	if (mode() === 'saas' && token !== null) await revokeAtPlatformAuth(token);
 
 	const headers = new Headers();
@@ -91,18 +78,26 @@ export async function endSession(request: Request) {
 	return new Response(null, { status: 204, headers });
 }
 
-// Best effort: leaving the user signed in here is worse than a revoke that
-// did not land, so a refusal or a silent Platform Auth still ends the Session.
 async function revokeAtPlatformAuth(token: string) {
-	await fetch(new URL('/api/v1/auth/logout', platformAuthUrl()), {
-		method: 'POST',
-		headers: { authorization: `Bearer ${token}` },
-		signal: AbortSignal.timeout(3000),
-	})
-		.then((response) => response.body?.cancel())
-		.catch(() => undefined);
+	try {
+		const response = await fetch(
+			new URL('/api/v1/auth/logout', platformAuthUrl()),
+			{
+				method: 'POST',
+				headers: { authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(3000),
+			},
+		);
+
+		await response.body?.cancel();
+	} catch {
+		// Best effort, misconfiguration included: leaving the user signed in here
+		// is worse than a revoke that did not land.
+	}
 }
 
+// Off the request rather than Start's `getCookie`, so handlers stay plain
+// Request → Response functions.
 function cookieValue(request: Request, name: string) {
 	for (const pair of request.headers.get('cookie')?.split(';') ?? []) {
 		const [key, ...value] = pair.trim().split('=');

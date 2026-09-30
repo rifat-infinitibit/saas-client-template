@@ -2,23 +2,23 @@ import { createFileRoute } from '@tanstack/react-router';
 
 import { APPLICATION_NAME } from '@/application';
 import { gtServerUrl, mode, tenantPortalUrl } from '@/env.server';
-import { beginArrival } from '@/session.server';
+import { ARRIVAL_SET_COOKIE } from '@/session.server';
 
 export const Route = createFileRoute('/signin')({
 	server: {
 		handlers: {
-			GET: () => {
-				const headers = new Headers({ 'cache-control': 'no-store' });
-
-				if (mode() === 'saas') {
-					headers.set('location', tenantPortalUrl());
-				} else {
-					headers.set('location', entraSignInUrl());
-					beginArrival(headers);
-				}
-
-				return new Response(null, { status: 302, headers });
-			},
+			GET: () =>
+				new Response(null, {
+					status: 302,
+					headers:
+						mode() === 'saas'
+							? { location: tenantPortalUrl(), 'cache-control': 'no-store' }
+							: {
+									location: entraSignInUrl(),
+									'cache-control': 'no-store',
+									'set-cookie': ARRIVAL_SET_COOKIE,
+								},
+				}),
 		},
 	},
 });

@@ -56,6 +56,13 @@ it('adopts a Launch without a refresh token', async () => {
 	expect(adopted.map(({ body }) => body)).toEqual([{ token: TOKEN }]);
 });
 
+it('strips a refresh token that arrived without a token, adopting nothing', async () => {
+	await launchAt('/acme#refresh_token=r1');
+
+	expect(adopted).toEqual([]);
+	expect(location.hash).toBe('');
+});
+
 it('adopts nothing when the address carries no Launch', async () => {
 	await launchAt('/');
 

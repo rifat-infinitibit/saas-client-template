@@ -49,8 +49,6 @@ describe('adopting a SaaS Launch', () => {
 		const response = await adopt({ token: TOKEN });
 
 		expect(response.status).toBe(204);
-		// A refresh token left from the last Session would be spent against the
-		// new one, and the platform answers reuse by revoking the whole family.
 		expect(response.headers.getSetCookie()).toEqual([
 			`__Host-saas-client-template-session=${TOKEN}; HttpOnly; Secure; SameSite=Lax; Path=/`,
 			'__Host-saas-client-template-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
@@ -109,13 +107,9 @@ describe('refusing an adoption', () => {
 	});
 
 	it('refuses a body that is not JSON, which a cross-site form can send', async () => {
-		const response = await respond(
-			Route,
-			new Request('http://localhost/session', {
-				method: 'POST',
-				headers: { 'content-type': 'text/plain' },
-				body: JSON.stringify({ token: TOKEN }),
-			}),
+		const response = await adopt(
+			{ token: TOKEN },
+			{ 'content-type': 'text/plain' },
 		);
 
 		expect(response.status).toBe(400);
@@ -171,8 +165,17 @@ describe('signing out', () => {
 		expect(response.headers.getSetCookie()).toEqual(ENDED);
 	});
 
+	it('still signs out here when Platform Auth was never configured', async () => {
+		vi.stubEnv('APP_MODE', 'saas');
+		vi.stubEnv('PLATFORM_AUTH_URL', undefined);
+
+		const response = await signOut();
+
+		expect(response.status).toBe(204);
+		expect(response.headers.getSetCookie()).toEqual(ENDED);
+	});
+
 	it('ends a Standalone Session by dropping it, since gt has nothing to revoke', async () => {
-		// gt's tokens are stateless and its `/logout` only clears gt's own cookies.
 		// An undeclared request fails the test, so this also asserts gt is not called.
 		vi.stubEnv('APP_MODE', 'standalone');
 

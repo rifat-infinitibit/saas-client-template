@@ -29,3 +29,6 @@ A token in `localStorage`, `sessionStorage` or a JavaScript variable is readable
 - No QueryClient is cleared on a Launch. The portal opens every Launch in a new tab (`window.open(…, '_blank', 'noopener')`) and gt's callback is a full redirect, so every Launch starts a new document with an empty cache.
 - The arrival cookie proves that this browser started a sign-in, not that this particular pair belongs to that sign-in. Binding the two needs gt to echo back a nonce this Application supplies.
 - A Standalone sign-out leaves gt's tokens valid until they expire.
+- With no arrival mark in SaaS, a crafted `/<slug>#token=<someone else's token>` link signs the person who follows it in as that someone (login CSRF). Closing this needs the Tenant portal to send something the Application can check.
+- Platform Auth revokes only with an access token that is still valid. Signing out after the access token has expired leaves the refresh-token family alive until the refresh that comes with the API proxy is used to renew first.
+- Hydration waits for `POST /session`, which times out after ten seconds.
