@@ -6,6 +6,7 @@ import {
 	useLoaderData,
 } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
+import { Toaster } from 'sonner';
 
 import { mode } from '@/env.server';
 import { brandAsset, toBrand } from '@/features/brand/lib/brand';
@@ -68,6 +69,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body>
 				{children}
+				<Toaster />
 				<Scripts />
 			</body>
 		</html>

@@ -14,8 +14,10 @@
 	--color-secondary: var(--ib-color-text-secondary);
 	--color-link: var(--ib-color-text-link);
 	--color-info-subtle: var(--ib-color-status-info-bg);
+	--color-critical: var(--ib-color-status-critical-text);
 	--radius-lg: var(--ib-radius-lg);
 	--text-body-m: var(--ib-font-size-body-m);
+	--text-body-sm: var(--ib-font-size-body-sm);
 	--text-heading-h1: var(--ib-font-size-heading-h1);
 	--font-weight-semibold: var(--ib-font-weight-semibold);
 }
@@ -25,4 +27,14 @@
 	html {
 		font-family: var(--ib-font-family-base);
 	}
+}
+
+/* sonner draws the toasts until the design system ships its own (ADR 0002).
+   It appends its styles after ours at runtime, so `:root` wins the tie. */
+:root [data-sonner-toaster][data-sonner-theme] {
+	--normal-bg: var(--ib-color-surface-raised);
+	--normal-border: var(--ib-color-border-default);
+	--normal-text: var(--ib-color-text-primary);
+	--border-radius: var(--ib-radius-lg);
+	font-family: var(--ib-font-family-base);
 }
