@@ -80,7 +80,7 @@ it("copies a Note's text from its row", async () => {
 
 	await renderRouter('/notes');
 	fireEvent.click(
-		await screen.findByRole('button', { name: 'Copy the text of Note 2' }),
+		await screen.findByRole('button', { name: 'Copy text of Note 2' }),
 	);
 
 	expect(writeText).toHaveBeenCalledWith('Body of note 2');

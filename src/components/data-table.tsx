@@ -18,7 +18,7 @@ import {
 import { m } from '@/paraglide/messages';
 
 interface ColumnMeta {
-	/** Numbers and dates line up on the end edge. */
+	/** Numbers and dates: on the end edge, and never broken across lines. */
 	align?: 'end';
 }
 
@@ -96,7 +96,7 @@ export function DataTable<Row extends RowData>({
 									</TableCell>
 								))}
 								{rowActions ? (
-									<TableCell className="text-end">
+									<TableCell className="text-end whitespace-nowrap">
 										{rowActions(row.original)}
 									</TableCell>
 								) : null}
@@ -118,5 +118,5 @@ export function DataTable<Row extends RowData>({
 }
 
 function alignment(meta: ColumnMeta | undefined) {
-	return meta?.align === 'end' ? 'text-end' : undefined;
+	return meta?.align === 'end' ? 'text-end whitespace-nowrap' : undefined;
 }

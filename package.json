@@ -90,5 +90,10 @@
 			"@semantic-release/release-notes-generator",
 			"@semantic-release/github"
 		]
+	},
+	"msw": {
+		"workerDirectory": [
+			"public"
+		]
 	}
 }

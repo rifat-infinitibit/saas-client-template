@@ -25,7 +25,7 @@
 	"notes_error": "The notes could not be loaded.",
 	"notes_loading": "Loading notes",
 	"notes_copy": "Copy text",
-	"notes_copy_label": "Copy the text of {title}",
+	"notes_copy_label": "Copy text of {title}",
 	"data_table_actions": "Actions",
 	"data_table_pages": "Pages"
 }

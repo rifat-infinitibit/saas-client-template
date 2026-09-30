@@ -34,7 +34,7 @@ export function NotesList() {
 
 	return (
 		<section aria-labelledby="notes-title" className="flex flex-col gap-6">
-			<h1 className="text-heading-h4 font-semibold" id="notes-title">
+			<h1 className="text-heading-h1 font-semibold" id="notes-title">
 				{m.notes_title()}
 			</h1>
 			{notes.isError ? (
