@@ -161,6 +161,35 @@ it('says so when nothing matches the search', async () => {
 	expect(await screen.findByText('No notes match “zebra”.')).toBeTruthy();
 });
 
+it('reopens the search and page an address holds', async () => {
+	server.use(pagedNotes(notes));
+
+	await renderRouter('/notes?page=2&search=note');
+
+	expect(await screen.findByRole('cell', { name: 'Note 21' })).toBeTruthy();
+	expect(
+		screen.getByRole<HTMLInputElement>('searchbox', { name: 'Search notes' })
+			.value,
+	).toBe('note');
+});
+
+it('follows the address when Back changes the search', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes');
+	await screen.findByRole('cell', { name: 'Note 1' });
+	await router.navigate({ to: '/notes', search: { search: 'note 2' } });
+	const field = screen.getByRole<HTMLInputElement>('searchbox', {
+		name: 'Search notes',
+	});
+	await waitFor(() => expect(field.value).toBe('note 2'));
+
+	router.history.back();
+
+	await waitFor(() => expect(field.value).toBe(''));
+	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
+});
+
 it("copies a Note's text from its row", async () => {
 	const writeText = vi.fn(() => Promise.resolve());
 
