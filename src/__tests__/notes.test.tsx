@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import type { Note } from '@/features/api/generated/service.schemas';
 import { IDENTITY_PATH } from '@/features/api/lib/api';
 import { pagedNotes } from '@/features/notes/lib/notes-mock';
+import { cookieName } from '@/paraglide/runtime';
 import { server } from '@/testing/msw';
 import { renderRouter } from '@/testing/render-router';
 import { holdSession } from '@/testing/session';
@@ -163,5 +164,44 @@ describe('creating a Note', () => {
 
 		expect(await within(dialog).findByText('Enter a title.')).toBeTruthy();
 		expect(title.getAttribute('aria-invalid')).toBe('true');
+	});
+
+	it('clears an error as soon as the field is corrected', async () => {
+		server.use(pagedNotes(notes));
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		const title = within(dialog).getByRole('textbox', { name: 'Title' });
+
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+		await within(dialog).findByText('Enter a title.');
+		fireEvent.change(title, { target: { value: 'Groceries' } });
+
+		await vi.waitFor(() =>
+			expect(within(dialog).queryByText('Enter a title.')).toBeNull(),
+		);
+		expect(title.getAttribute('aria-invalid')).not.toBe('true');
+
+		fireEvent.change(title, { target: { value: 'x'.repeat(201) } });
+
+		expect(
+			await within(dialog).findByText(
+				'Keep the title to 200 characters or fewer.',
+			),
+		).toBeTruthy();
+	});
+
+	it('says what is wrong in German under de', async () => {
+		document.cookie = `${cookieName}=de`;
+		server.use(pagedNotes(notes));
+
+		await renderRouter('/notes');
+		fireEvent.click(await screen.findByRole('button', { name: 'Neue Notiz' }));
+		const dialog = await screen.findByRole('dialog', { name: 'Neue Notiz' });
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Erstellen' }));
+
+		expect(
+			await within(dialog).findByText('Geben Sie einen Titel ein.'),
+		).toBeTruthy();
 	});
 });
