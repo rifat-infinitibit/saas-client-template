@@ -1,12 +1,22 @@
 import { AlertBanner } from '@infinitibit_gmbh/ui';
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
 
+import { mode } from '@/env.server';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 
 import appCss from '@/styles.css?url';
 
+// The whole of what the browser learns about the Mode.
+const readSignInWording = createServerFn({ method: 'GET' }).handler(() =>
+	mode() === 'saas' ? 'portal' : 'entra',
+);
+
 export const Route = createRootRoute({
+	loader: async () => ({ signIn: await readSignInWording() }),
+	// The Mode is settled for the life of the server process.
+	staleTime: Infinity,
 	head: () => ({
 		meta: [
 			{ charSet: 'utf-8' },

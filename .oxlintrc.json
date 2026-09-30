@@ -436,6 +436,7 @@
 				"*.config.ts",
 				"*.config.mjs",
 				"lint/plugin.js",
+				"src/nitro/**",
 				"src/server.ts"
 			],
 			"rules": {
