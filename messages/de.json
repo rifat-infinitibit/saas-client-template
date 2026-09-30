@@ -35,5 +35,6 @@
 	"notes_title_too_long": "Der Titel darf höchstens {max} Zeichen lang sein.",
 	"notes_create": "Erstellen",
 	"notes_cancel": "Abbrechen",
-	"notes_dialog_close": "Schließen"
+	"notes_dialog_close": "Schließen",
+	"notes_created": "Notiz erstellt."
 }

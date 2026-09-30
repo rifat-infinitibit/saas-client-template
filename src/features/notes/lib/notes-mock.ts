@@ -1,10 +1,14 @@
 import { faker } from '@faker-js/faker';
 
 import {
+	getCreateNoteMockHandler,
 	getCreateNoteResponseMock,
 	getListNotesMockHandler,
 } from '@/features/api/generated/service.msw';
-import type { Note } from '@/features/api/generated/service.schemas';
+import type {
+	Note,
+	NoteCreate,
+} from '@/features/api/generated/service.schemas';
 
 /** Enough Notes to page through, the same ones on every reload. */
 export function sampleNotes() {
@@ -16,6 +20,20 @@ export function sampleNotes() {
 			body: faker.lorem.sentences(2),
 		}),
 	).sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+/** `POST /api/notes` stored at the front of `notes`, newest first as the Service lists it. */
+export function createdNotes(notes: Note[]) {
+	return getCreateNoteMockHandler(async ({ request }) => {
+		const note = getCreateNoteResponseMock({
+			...((await request.json()) as NoteCreate),
+			created_at: new Date().toISOString(),
+		});
+
+		notes.unshift(note);
+
+		return note;
+	});
 }
 
 /** `GET /api/notes` answered from `notes`, paged as the Service does. */

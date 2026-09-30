@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 
 import type { Note } from '@/features/api/generated/service.schemas';
 import { IDENTITY_PATH } from '@/features/api/lib/api';
-import { pagedNotes } from '@/features/notes/lib/notes-mock';
+import { createdNotes, pagedNotes } from '@/features/notes/lib/notes-mock';
 import { cookieName } from '@/paraglide/runtime';
 import { server } from '@/testing/msw';
 import { renderRouter } from '@/testing/render-router';
@@ -189,6 +189,26 @@ describe('creating a Note', () => {
 				'Keep the title to 200 characters or fewer.',
 			),
 		).toBeTruthy();
+	});
+
+	it('creates the Note, says so and shows it in the list', async () => {
+		const stored = [...notes];
+		server.use(pagedNotes(stored), createdNotes(stored));
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		fireEvent.change(within(dialog).getByRole('textbox', { name: 'Title' }), {
+			target: { value: 'Groceries' },
+		});
+		fireEvent.change(within(dialog).getByRole('textbox', { name: 'Text' }), {
+			target: { value: 'Milk, eggs' },
+		});
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+		expect(await screen.findByText('Note created.')).toBeTruthy();
+		expect(await screen.findByRole('cell', { name: 'Groceries' })).toBeTruthy();
+		expect(titles()[0]).toBe('Groceries');
+		expect(screen.queryByRole('dialog')).toBeNull();
 	});
 
 	it('says what is wrong in German under de', async () => {

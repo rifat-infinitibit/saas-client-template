@@ -20,4 +20,5 @@ shadcn's model is to copy component source into each app and own it there. The I
 
 - A visual change ships once, in the package, and reaches every Application on upgrade.
 - When a screen needs something the package does not have, the fix is upstream — a variant or a token in the design system — rather than a local override. That is slower for the one screen and is the point.
-- No toast ships with the package, so toasts will come from `sonner`, mounted once in the root, until it does.
+- No toast ships with the package, so toasts come from `sonner`, one `<Toaster>` in the root document, its colours, radius and face mapped to `--ib-*` tokens in `src/styles.css`, until the package ships one.
+- No field message ships either: a form's error line is written from tokens beside the form until the package has one.

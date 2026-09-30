@@ -28,3 +28,13 @@
 		font-family: var(--ib-font-family-base);
 	}
 }
+
+/* sonner draws the toasts until the design system ships its own (ADR 0002).
+   It appends its styles after ours at runtime, so `:root` wins the tie. */
+:root [data-sonner-toaster][data-sonner-theme] {
+	--normal-bg: var(--ib-color-surface-raised);
+	--normal-border: var(--ib-color-border-default);
+	--normal-text: var(--ib-color-text-primary);
+	--border-radius: var(--ib-radius-lg);
+	font-family: var(--ib-font-family-base);
+}

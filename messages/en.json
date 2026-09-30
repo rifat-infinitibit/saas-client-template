@@ -35,5 +35,6 @@
 	"notes_title_too_long": "Keep the title to {max} characters or fewer.",
 	"notes_create": "Create",
 	"notes_cancel": "Cancel",
-	"notes_dialog_close": "Close"
+	"notes_dialog_close": "Close",
+	"notes_created": "Note created."
 }

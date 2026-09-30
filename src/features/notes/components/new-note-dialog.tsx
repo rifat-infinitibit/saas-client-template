@@ -13,9 +13,15 @@ import {
 	Textarea,
 } from '@infinitibit_gmbh/ui';
 import { revalidateLogic, useForm } from '@tanstack/react-form';
+import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
+import {
+	getListNotesQueryKey,
+	useCreateNote,
+} from '@/features/api/generated/service';
 import { m } from '@/paraglide/messages';
 
 const TITLE_MAX = 200;
@@ -42,18 +48,32 @@ export function NewNoteDialog() {
 			</DialogTrigger>
 			<DialogContent closeLabel={m.notes_dialog_close()}>
 				{/* Inside the content, so every opening starts from an empty form. */}
-				<NewNoteForm />
+				<NewNoteForm onCreated={() => setOpen(false)} />
 			</DialogContent>
 		</Dialog>
 	);
 }
 
-function NewNoteForm() {
+function NewNoteForm({ onCreated }: { onCreated: () => void }) {
+	const queryClient = useQueryClient();
+	const create = useCreateNote({
+		mutation: {
+			onSuccess: () => {
+				void queryClient.invalidateQueries({
+					queryKey: getListNotesQueryKey(),
+				});
+				toast.success(m.notes_created());
+				onCreated();
+			},
+		},
+	});
 	const form = useForm({
 		defaultValues: { title: '', body: '' },
 		// Quiet until the first submit, then checked on every change.
 		validationLogic: revalidateLogic(),
 		validators: { onDynamic: noteSchema() },
+		// The schema checks the values but hands them back untrimmed.
+		onSubmit: ({ value }) => create.mutate({ data: noteSchema().parse(value) }),
 	});
 
 	return (
@@ -107,7 +127,9 @@ function NewNoteForm() {
 				<DialogClose asChild>
 					<Button variant="secondary">{m.notes_cancel()}</Button>
 				</DialogClose>
-				<Button type="submit">{m.notes_create()}</Button>
+				<Button disabled={create.isPending} type="submit">
+					{m.notes_create()}
+				</Button>
 			</DialogFooter>
 		</form>
 	);
