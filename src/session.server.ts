@@ -84,7 +84,6 @@ export async function endSession(request: Request) {
 }
 
 export function dropSession(headers: Headers) {
-	headers.delete('set-cookie');
 	headers.append('set-cookie', expired(SESSION_COOKIE));
 	headers.append('set-cookie', expired(REFRESH_COOKIE));
 
@@ -97,18 +96,15 @@ interface Pair {
 }
 
 export function holdSession(headers: Headers, pair: Pair) {
-	headers.delete('set-cookie');
 	headers.append('set-cookie', held(SESSION_COOKIE, pair.access));
 	headers.append('set-cookie', held(REFRESH_COOKIE, pair.refresh));
-
-	return headers;
 }
 
 // A request that left before the renewed cookies landed still carries the
 // spent refresh token, so the answer is kept a while for it too.
 const RETAINED_MS = 60_000;
-// ponytail: in-process, so single-flight holds per server; a shared store once
-// more than one instance serves the same browser.
+// In-process: two instances serving one browser would each spend the token.
+// A shared store closes that once there are two.
 const renewals = new Map<string, Promise<Pair | null>>();
 
 /** A fresh pair for `refresh`, or null once it can renew nothing. */

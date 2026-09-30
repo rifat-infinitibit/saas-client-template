@@ -15,7 +15,11 @@ export function useIdentity() {
 async function readIdentity(): Promise<Identity> {
 	const response = await fetch(IDENTITY_PATH);
 
-	if (!response.ok) throw new Error(`${IDENTITY_PATH} ${response.status}`);
+	// The refusal's `error_code` is what tells a Session error from any other.
+	if (!response.ok)
+		throw new Error(`${IDENTITY_PATH} answered ${response.status}`, {
+			cause: await response.json().catch(() => null),
+		});
 
 	return response.json() as Promise<Identity>;
 }

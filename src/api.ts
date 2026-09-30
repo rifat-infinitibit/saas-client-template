@@ -1,5 +1,5 @@
-// What the browser may reach under `/api`, shared with the server's proxy and
-// with orval's tag filter so no hook is generated for a path the proxy refuses.
+// What the browser may reach under `/api`. orval's tag filter is to read the
+// same list, so no hook is generated for a path the proxy refuses.
 
 /** Service tags forwarded as `/api/<tag>`: a Service mounts each tag there. */
 export const FORWARDED_TAGS = ['notes'] as const;
