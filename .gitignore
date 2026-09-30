@@ -3,7 +3,9 @@ node_modules
 .output
 .nitro
 .tanstack
-.claude
+.claude/worktrees
+.claude/settings.local.json
 *.local
 .env
 .env.*
+!.env.*.example

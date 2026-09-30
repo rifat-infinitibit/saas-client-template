@@ -15,8 +15,7 @@
 		".nitro/",
 		".tanstack/",
 		".claude/",
-		"src/routeTree.gen.ts",
-		"src/generated/"
+		"src/routeTree.gen.ts"
 	],
 	"rules": {
 		"constructor-super": "error",
@@ -406,6 +405,14 @@
 									"useInsertionEffect"
 								],
 								"message": "Use React.<hook>() instead of named imports to match project conventions."
+							},
+							{
+								"name": "lucide-react",
+								"message": "Icons come only from <Icon> in @infinitibit_gmbh/ui/icons (AGENTS.md → UI)."
+							},
+							{
+								"name": "@phosphor-icons/react",
+								"message": "Icons come only from <Icon> in @infinitibit_gmbh/ui/icons (AGENTS.md → UI)."
 							}
 						]
 					}
@@ -514,25 +521,8 @@
 						"allow": ["layout"]
 					}
 				],
-				"shadcn/no-raw-colors": [
-					"warn",
-					{
-						"allow": ["text-body-m/body-sm"]
-					}
-				],
-				"shadcn/no-arbitrary-values": [
-					"warn",
-					{
-						"allow": [
-							"grid-cols",
-							"grid-rows",
-							"list-style-type",
-							"aspect",
-							"transition-[translate,opacity]",
-							"[scrollbar-gutter:stable]"
-						]
-					}
-				],
+				"shadcn/no-raw-colors": "warn",
+				"shadcn/no-arbitrary-values": "warn",
 				"shadcn/no-inline-styles": "warn"
 			}
 		}

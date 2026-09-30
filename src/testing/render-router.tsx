@@ -4,10 +4,10 @@ import { render } from '@testing-library/react';
 import { getRouter } from '@/router';
 
 /**
- * The app's own router, route tree and root document, opened at `at` in memory.
+ * The real router, route tree and root document, opened at `at` in memory.
  * Rendered into `document` because the root route draws `<html>` itself.
  */
-export async function renderApp(at: string) {
+export async function renderRouter(at: string) {
 	const router = getRouter();
 
 	router.update({
@@ -17,6 +17,4 @@ export async function renderApp(at: string) {
 	await router.load();
 
 	render(<RouterProvider router={router} />, { container: document });
-
-	return router;
 }

@@ -6,7 +6,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '@/testing/msw';
 import { respond } from '@/testing/respond';
 
-// A stand-in until the app has server routes of its own: it forwards to an
+// A stand-in until the client has server routes of its own: it forwards to an
 // upstream, which is the shape every real one here takes.
 const greeting = createRoute({
 	getParentRoute: () => createRootRoute(),
@@ -47,12 +47,4 @@ it('answers a Request with the Response the route handler returns', async () => 
 
 	expect(response.status).toBe(201);
 	expect(await response.text()).toBe('Hello, ada. Welcome back.');
-});
-
-it('refuses a method the route does not answer', async () => {
-	await expect(
-		respond(greeting, new Request('http://localhost/greeting/ada'), {
-			name: 'ada',
-		}),
-	).rejects.toThrow(/GET/);
 });

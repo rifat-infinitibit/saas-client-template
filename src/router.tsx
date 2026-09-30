@@ -4,7 +4,7 @@ import { createRouter } from '@tanstack/react-router';
 
 import { routeTree } from './routeTree.gen';
 
-// Module scope: the server and the browser both enter the app here, and every
+// Module scope: the server and the browser both enter through here, and every
 // `<Icon>` needs the sprite before the first render.
 setIconSprite(iconSprite);
 

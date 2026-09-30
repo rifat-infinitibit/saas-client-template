@@ -8,7 +8,7 @@ export const Route = createFileRoute('/')({
 
 function Home() {
 	return (
-		<main className="p-8">
+		<main>
 			<AlertBanner
 				icon={<Icon name="dashboard" />}
 				title="The template is running."

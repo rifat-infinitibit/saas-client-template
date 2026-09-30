@@ -18,6 +18,7 @@ oxlint now implements almost every rule those configs use natively, runs type-aw
 - Rules oxlint does not implement natively run as JS plugins: `@shadcn/lint` (design-system token rules, `settings.shadcn` at the root) and `@tanstack/eslint-plugin-router` with `create-route-property-order` and `route-param-names` switched on.
 - ESLint's `no-restricted-syntax` has no oxlint equivalent, so the one use of it — forbidding `&&` rendering in JSX — is a local rule in `lint/plugin.js`.
 - `import/order` is dropped in favour of oxfmt's `sortImports`, which treats `@/` as internal: `@/` imports now sit above sibling imports.
+- `eslint-plugin-sort-destructure-keys` is dropped: working-paper-client registered it without enabling a rule.
 - `.oxfmtrc.json` is `oxfmt --migrate=prettier` of the same repo's Prettier config plus `sortImports`.
 - `lint/rules.test.ts` lints `lint/fixtures/bad.tsx` and fails unless the three project-specific rules each report.
 

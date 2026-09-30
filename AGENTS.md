@@ -25,10 +25,10 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 `pnpm lint` (oxlint, type-aware), `pnpm format` (oxfmt), `pnpm type:check`, `pnpm test`, `pnpm build`. Commits are Conventional Commits (`pnpm commit` prompts); branches are `type/scope/slug`. oxlint and oxfmt replace ESLint and Prettier (ADR 0001).
 
-Tests drive the app through one of two seams, with every upstream stubbed by MSW (`src/testing/msw.ts`); an undeclared request fails the test:
+Tests drive the client through one of two seams, with every upstream stubbed by MSW (`src/testing/msw.ts`); an undeclared request fails the test:
 
 - a server route called as `Request` → `Response`: `respond()` in `src/testing/respond.ts`;
-- the real router rendered at an address: `renderApp()` in `src/testing/render-app.tsx`.
+- the real router rendered at an address: `renderRouter()` in `src/testing/render-router.tsx`.
 
 ## Agent skills
 

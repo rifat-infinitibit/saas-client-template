@@ -1,9 +1,9 @@
 import { screen } from '@testing-library/react';
 
-import { renderApp } from '@/testing/render-app';
+import { renderRouter } from '@/testing/render-router';
 
 it('draws the home route from the design system', async () => {
-	await renderApp('/');
+	await renderRouter('/');
 
 	const banner = await screen.findByRole('status');
 
