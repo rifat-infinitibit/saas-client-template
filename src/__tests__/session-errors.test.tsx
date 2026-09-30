@@ -101,6 +101,10 @@ describe('the classifier, as the router default error component', () => {
 	it.for([
 		['a refusal with no code', refusal({ detail: 'Not authenticated' })],
 		['an error with no body', new Error('offline')],
+		[
+			'a code named after an Object key',
+			refusal({ error_code: 'constructor' }),
+		],
 	])('leaves %s to the router', async ([, error]) => {
 		await throwing(error);
 

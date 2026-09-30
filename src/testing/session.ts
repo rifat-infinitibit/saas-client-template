@@ -1,4 +1,4 @@
-import { COOKIE_PREFIX } from '@/application';
+import { REFRESH_COOKIE, SESSION_COOKIE } from '@/session.server';
 
 /** A token carrying `claims`, signed by no one: the gate never verifies it. */
 export function tokenWith(claims: object) {
@@ -7,7 +7,7 @@ export function tokenWith(claims: object) {
 
 /** Puts a Session in the browser's cookie jar, where adopting a Launch leaves it. */
 export function holdSession(access = tokenWith({}), refresh?: string) {
-	document.cookie = `${COOKIE_PREFIX}-session=${access}; Path=/; Secure`;
+	document.cookie = `${SESSION_COOKIE}=${access}; Path=/; Secure`;
 	if (refresh !== undefined)
-		document.cookie = `${COOKIE_PREFIX}-refresh=${refresh}; Path=/; Secure`;
+		document.cookie = `${REFRESH_COOKIE}=${refresh}; Path=/; Secure`;
 }

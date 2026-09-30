@@ -2,7 +2,7 @@ import { Outlet, createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequest } from '@tanstack/react-start/server';
 
-import { GateScreen } from '@/session-gate';
+import { SessionGate } from '@/session-gate';
 import { hasLiveSession } from '@/session.server';
 
 const readLiveSession = createServerFn({ method: 'GET' }).handler(() =>
@@ -22,6 +22,6 @@ function Authenticated() {
 	return Route.useLoaderData().live ? (
 		<Outlet />
 	) : (
-		<GateScreen state="no-session" />
+		<SessionGate state="no-session" />
 	);
 }

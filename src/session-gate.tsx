@@ -16,20 +16,22 @@ export type GateState = 'no-session' | 'not-provisioned';
 // localhost:8002 on 2026-08-19. Re-read them when an upstream changes its gate.
 // Everything else is the Screen's, including permission refusals: signing in
 // again would not help. The unmapped codes are listed in session-errors.test.tsx.
-const GATE_BY_ERROR_CODE: Partial<Record<string, GateState>> = {
+// A Map, so a code such as `constructor` finds nothing.
+const GATE_BY_ERROR_CODE = new Map<string, GateState>([
 	// Our proxy with no Session cookie, and the Service with no bearer.
-	NOT_AUTHENTICATED: 'no-session',
+	['NOT_AUTHENTICATED', 'no-session'],
 	// The Service, to any bearer it will not accept.
-	INVALID_PLATFORM_TOKEN: 'no-session',
+	['INVALID_PLATFORM_TOKEN', 'no-session'],
 	// gt's Facade and gt's `/api/auth/sso/me`, to the same unusable bearer.
-	AUTH_NOT_AUTHENTICATED: 'no-session',
-	SSO_SESSION_EXPIRED: 'no-session',
+	['AUTH_NOT_AUTHENTICATED', 'no-session'],
+	['SSO_SESSION_EXPIRED', 'no-session'],
 	// The Service's `TenantNotProvisioned`: a Workspace with none of this
 	// Application. Read from its source; only a portal Launch can mint the token.
-	TENANT_NOT_FOUND: 'not-provisioned',
-};
+	['TENANT_NOT_FOUND', 'not-provisioned'],
+]);
 
-/** The gate a failed call puts the user behind, or null if it is the Screen's. */
+// A call throws the refusal's body as the error's `cause`, as `identity.ts`
+// does; a generated client's mutator must too, or its refusals skip the gate.
 export function sessionGateFor(error: unknown): GateState | null {
 	const body = error instanceof Error ? error.cause : null;
 	const code =
@@ -37,30 +39,31 @@ export function sessionGateFor(error: unknown): GateState | null {
 			? body.error_code
 			: null;
 
-	return typeof code === 'string' ? (GATE_BY_ERROR_CODE[code] ?? null) : null;
+	return typeof code === 'string'
+		? (GATE_BY_ERROR_CODE.get(code) ?? null)
+		: null;
 }
 
-/** The router's default error component: the gate, or the router's own. */
-export function SessionGate({ error, ...props }: ErrorComponentProps) {
+// The router's default error component: the Session gate, or the router's own.
+export function RouterError({ error, ...props }: ErrorComponentProps) {
 	const state = sessionGateFor(error);
 
 	return state === null ? (
 		<ErrorComponent error={error} {...props} />
 	) : (
-		<GateScreen state={state} />
+		<SessionGate state={state} />
 	);
 }
 
-export function GateScreen({ state }: { state: GateState }) {
+export function SessionGate({ state }: { state: GateState }) {
 	const { brand, signIn } = useLoaderData({ from: '__root__' });
+	const way =
+		signIn === 'portal'
+			? { ended: m.gate_sign_in_portal(), action: m.gate_action_portal() }
+			: { ended: m.gate_sign_in_entra(), action: m.gate_action_entra() };
 	const [title, description] =
 		state === 'no-session'
-			? [
-					m.gate_sign_in_title(),
-					signIn === 'portal'
-						? m.gate_sign_in_portal()
-						: m.gate_sign_in_entra(),
-				]
+			? [m.gate_sign_in_title(), way.ended]
 			: [m.gate_not_provisioned_title(), m.gate_not_provisioned_description()];
 
 	return (
@@ -73,11 +76,7 @@ export function GateScreen({ state }: { state: GateState }) {
 						<p>{description}</p>
 						{/* A document navigation: `/signin` answers with a redirect off this origin. */}
 						<Button asChild variant="primary">
-							<a href="/signin">
-								{signIn === 'portal'
-									? m.gate_action_portal()
-									: m.gate_action_entra()}
-							</a>
+							<a href="/signin">{way.action}</a>
 						</Button>
 					</div>
 				</CardSlot>

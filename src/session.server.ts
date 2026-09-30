@@ -1,8 +1,8 @@
 import { COOKIE_PREFIX } from '@/application';
 import { gtServerUrl, mode, platformAuthUrl } from '@/env.server';
 
-const SESSION_COOKIE = `${COOKIE_PREFIX}-session`;
-const REFRESH_COOKIE = `${COOKIE_PREFIX}-refresh`;
+export const SESSION_COOKIE = `${COOKIE_PREFIX}-session`;
+export const REFRESH_COOKIE = `${COOKIE_PREFIX}-refresh`;
 const ARRIVAL_COOKIE = `${COOKIE_PREFIX}-arrival`;
 
 // No lifetime: the token's own expiry bounds access, upstream enforces it.
