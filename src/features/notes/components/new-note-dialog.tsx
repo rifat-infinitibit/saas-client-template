@@ -68,13 +68,13 @@ function NewNoteForm({ onCreated }: { onCreated: () => void }) {
 			},
 		},
 	});
+	const schema = noteSchema();
 	const form = useForm({
 		defaultValues: { title: '', body: '' },
-		// Quiet until the first submit, then checked on every change.
 		validationLogic: revalidateLogic(),
-		validators: { onDynamic: noteSchema() },
+		validators: { onDynamic: schema },
 		// The schema checks the values but hands them back untrimmed.
-		onSubmit: ({ value }) => create.mutate({ data: noteSchema().parse(value) }),
+		onSubmit: ({ value }) => create.mutate({ data: schema.parse(value) }),
 	});
 
 	return (
@@ -107,9 +107,10 @@ function NewNoteForm({ onCreated }: { onCreated: () => void }) {
 									onChange={(event) => field.handleChange(event.target.value)}
 									value={field.state.value}
 								/>
-								<FieldError id="note-title-error">
+								{/* The design system ships no field message, so this one is written from its tokens. */}
+								<p className="text-body-sm text-critical" id="note-title-error">
 									{field.state.meta.errors[0]?.message}
-								</FieldError>
+								</p>
 							</div>
 						)}
 					</form.Field>
@@ -137,14 +138,5 @@ function NewNoteForm({ onCreated }: { onCreated: () => void }) {
 				</Button>
 			</DialogFooter>
 		</form>
-	);
-}
-
-// ponytail: the design system ships no field message; raise it there and drop this.
-function FieldError({ id, children }: { id: string; children?: string }) {
-	return (
-		<p className="text-body-sm text-critical" id={id}>
-			{children}
-		</p>
 	);
 }
