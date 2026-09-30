@@ -25,5 +25,3 @@ jobs:
       - run: pnpm exec semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # The release commit carries the notes in its body, which commitlint's line limit rejects.
-          HUSKY: 0
