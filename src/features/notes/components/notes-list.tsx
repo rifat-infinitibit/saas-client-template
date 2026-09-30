@@ -3,6 +3,7 @@ import { getRouteApi } from '@tanstack/react-router';
 import { createColumnHelper } from '@tanstack/react-table';
 
 import { DataTable, dataTableFeatures } from '@/components/data-table';
+import { ListSearch } from '@/components/list-search';
 import { useListNotes } from '@/features/api/generated/service';
 import type { Note } from '@/features/api/generated/service.schemas';
 import { m } from '@/paraglide/messages';
@@ -28,21 +29,33 @@ const notesColumns = () =>
 	]);
 
 export function NotesList() {
-	const { page, size } = route.useSearch();
+	const { page, size, search } = route.useSearch();
 	const navigate = route.useNavigate();
-	const notes = useListNotes({ page, size });
+	const notes = useListNotes({ page, size, search: search || undefined });
 
 	return (
 		<section aria-labelledby="notes-title" className="flex flex-col gap-6">
 			<h1 className="text-heading-h1 font-semibold" id="notes-title">
 				{m.notes_title()}
 			</h1>
+			<ListSearch
+				label={m.notes_search()}
+				onSearch={(next) =>
+					void navigate({
+						search: (previous) => ({ ...previous, search: next, page: 1 }),
+						// Back returns to the list before the search, not to each keystroke.
+						replace: true,
+						resetScroll: false,
+					})
+				}
+				value={search}
+			/>
 			{notes.isError ? (
 				<AlertBanner title={m.notes_error()} variant="error" />
 			) : notes.data ? (
 				<DataTable
 					columns={notesColumns()}
-					empty={m.notes_empty()}
+					empty={search ? m.notes_no_match({ search }) : m.notes_empty()}
 					onPageChange={(next) =>
 						void navigate({
 							search: (previous) => ({ ...previous, page: next }),

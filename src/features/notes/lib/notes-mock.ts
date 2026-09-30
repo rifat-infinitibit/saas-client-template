@@ -18,16 +18,20 @@ export function sampleNotes() {
 	).sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
-/** `GET /api/notes` answered from `notes`, paged as the Service does. */
+/** `GET /api/notes` answered from `notes`, searched and paged as the Service does. */
 export function pagedNotes(notes: Note[]) {
 	return getListNotesMockHandler(({ request }) => {
 		const { searchParams } = new URL(request.url);
 		const page = Number(searchParams.get('page') ?? 1);
 		const size = Number(searchParams.get('size') ?? 20);
+		const search = searchParams.get('search')?.toLowerCase() ?? '';
+		const matches = notes.filter((note) =>
+			`${note.title}\n${note.body}`.toLowerCase().includes(search),
+		);
 
 		return {
-			items: notes.slice((page - 1) * size, page * size),
-			total: notes.length,
+			items: matches.slice((page - 1) * size, page * size),
+			total: matches.length,
 			page,
 			size,
 		};

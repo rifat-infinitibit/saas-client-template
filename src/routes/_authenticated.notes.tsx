@@ -1,13 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, stripSearchParams } from '@tanstack/react-router';
 
-import {
-	listSearchSchema,
-	stripListSearchDefaults,
-} from '@/components/list-search';
+import { listSearchDefaults, listSearchSchema } from '@/components/list-search';
 import { NotesList } from '@/features/notes/components/notes-list';
 
 export const Route = createFileRoute('/_authenticated/notes')({
 	validateSearch: listSearchSchema,
-	search: { middlewares: [stripListSearchDefaults] },
+	search: { middlewares: [stripSearchParams(listSearchDefaults)] },
 	component: NotesList,
 });

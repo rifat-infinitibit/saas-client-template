@@ -22,6 +22,8 @@
 	"notes_column_body": "Text",
 	"notes_column_created": "Created",
 	"notes_empty": "No notes yet.",
+	"notes_search": "Search notes",
+	"notes_no_match": "No notes match “{search}”.",
 	"notes_error": "The notes could not be loaded.",
 	"notes_loading": "Loading notes",
 	"notes_copy": "Copy text",

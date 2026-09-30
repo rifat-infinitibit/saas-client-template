@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
 import type { Note } from '@/features/api/generated/service.schemas';
@@ -118,6 +118,47 @@ it('keeps the page in the address, where Back returns to it', async () => {
 	router.history.back();
 
 	expect(await screen.findByRole('cell', { name: 'Note 1' })).toBeTruthy();
+});
+
+it('searches once typing stops, from the first page, in the same history entry', async () => {
+	server.use(pagedNotes(notes));
+
+	const router = await renderRouter('/notes?page=2');
+	await screen.findByRole('cell', { name: 'Note 21' });
+	const entries = router.history.length;
+	const field = screen.getByRole<HTMLInputElement>('searchbox', {
+		name: 'Search notes',
+	});
+
+	for (const typed of ['n', 'no', 'not', 'note', 'note ', 'note 2'])
+		fireEvent.change(field, { target: { value: typed } });
+
+	expect(field.value).toBe('note 2');
+	expect(router.state.location.searchStr).toBe('?page=2');
+
+	await waitFor(() => expect(titles()[0]).toBe('Note 2'));
+	expect(titles()).toEqual([
+		'Note 2',
+		'Note 20',
+		'Note 21',
+		'Note 22',
+		'Note 23',
+		'Note 24',
+		'Note 25',
+	]);
+	expect(
+		new URLSearchParams(router.state.location.searchStr).get('search'),
+	).toBe('note 2');
+	expect(router.state.location.search).not.toHaveProperty('page');
+	expect(router.history.length).toBe(entries);
+});
+
+it('says so when nothing matches the search', async () => {
+	server.use(pagedNotes(notes));
+
+	await renderRouter('/notes?search=zebra');
+
+	expect(await screen.findByText('No notes match “zebra”.')).toBeTruthy();
 });
 
 it("copies a Note's text from its row", async () => {

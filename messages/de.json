@@ -22,6 +22,8 @@
 	"notes_column_body": "Text",
 	"notes_column_created": "Erstellt",
 	"notes_empty": "Noch keine Notizen.",
+	"notes_search": "Notizen durchsuchen",
+	"notes_no_match": "Keine Notizen zu „{search}“.",
 	"notes_error": "Die Notizen konnten nicht geladen werden.",
 	"notes_loading": "Notizen werden geladen",
 	"notes_copy": "Text kopieren",
