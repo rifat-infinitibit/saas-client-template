@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 
 import { server } from '@/testing/msw';
 import { renderRouter } from '@/testing/render-router';
+import { holdSession } from '@/testing/session';
 
 const TOKEN = 'header.payload.signature';
 
@@ -14,6 +15,8 @@ beforeEach(() => {
 	server.use(
 		http.post(`${location.origin}/session`, async ({ request }) => {
 			adopted.push({ body: await request.json(), addressBar: location.href });
+			// Where the real route's Set-Cookie would land.
+			holdSession();
 
 			return new HttpResponse(null, { status: 204 });
 		}),

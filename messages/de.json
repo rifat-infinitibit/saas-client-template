@@ -1,5 +1,19 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 	"home_running": "Die Vorlage läuft.",
-	"not_found_title": "Seite nicht gefunden"
+	"not_found_title": "Seite nicht gefunden",
+	"gate_sign_in_title": "Melden Sie sich an, um fortzufahren",
+	"gate_sign_in_portal": "Ihre Sitzung ist beendet. Öffnen Sie diese Anwendung erneut über Ihr Mandantenportal.",
+	"gate_sign_in_entra": "Ihre Sitzung ist beendet. Melden Sie sich mit Ihrem Microsoft-Konto an, um fortzufahren.",
+	"gate_not_provisioned_title": "Kein Zugriff auf diese Anwendung",
+	"gate_not_provisioned_description": "Ihr Arbeitsbereich ist für diese Anwendung nicht eingerichtet. Bitten Sie Ihre Administration um Zugriff.",
+	"gate_action_portal": "Mandantenportal öffnen",
+	"gate_action_entra": "Mit Microsoft anmelden",
+	"shell_nav": "Anwendung",
+	"shell_nav_home": "Startseite",
+	"shell_apps": "Apps",
+	"shell_notifications": "Benachrichtigungen",
+	"shell_account": "Konto",
+	"shell_language": "Sprache",
+	"shell_sign_out": "Abmelden"
 }
