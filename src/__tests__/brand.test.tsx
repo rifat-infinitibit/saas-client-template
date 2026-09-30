@@ -5,6 +5,9 @@ import { screen } from '@testing-library/react';
 import { brands } from '@/brand';
 import { renderRouter } from '@/testing/render-router';
 
+beforeEach(() => {
+	vi.stubEnv('APP_MODE', 'saas');
+});
 afterEach(() => {
 	vi.unstubAllEnvs();
 });

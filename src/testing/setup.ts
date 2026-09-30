@@ -1,13 +1,11 @@
 import { server } from './msw';
 
-// Start's compiler is what splits a server function into a browser fetch and a
-// server handler, and tests run without it. The handler runs in-process instead,
-// against the same `process.env` a test stubs.
+// Tests run without Start's compiler, which is what turns a server function
+// into an RPC, and Start ships no runtime for one outside its server. Here the
+// handler runs in-process, as it does during SSR.
 vi.mock('@tanstack/react-start', async (importOriginal) => ({
-	...(await importOriginal()),
-	createServerFn: () => ({
-		handler: (handler: () => unknown) => async () => await handler(),
-	}),
+	...(await importOriginal<typeof import('@tanstack/react-start')>()),
+	createServerFn: () => ({ handler: (fn: () => unknown) => fn }),
 }));
 
 // jsdom lays nothing out and leaves `scrollTo` unimplemented; the router calls

@@ -8,6 +8,7 @@ import {
 import { createServerFn } from '@tanstack/react-start';
 
 import { brandAsset, toBrand } from '@/brand';
+import { mode } from '@/env.server';
 
 import appCss from '@/styles.css?url';
 
@@ -16,9 +17,17 @@ const readBrand = createServerFn({ method: 'GET' }).handler(() =>
 	toBrand(process.env.APP_BRAND),
 );
 
+// The whole of what the browser learns about the Mode.
+const readSignInWording = createServerFn({ method: 'GET' }).handler(() =>
+	mode() === 'saas' ? 'portal' : 'entra',
+);
+
 export const Route = createRootRoute({
-	loader: async () => ({ brand: await readBrand() }),
-	// The Brand is settled for the life of the deployment.
+	loader: async () => ({
+		brand: await readBrand(),
+		signIn: await readSignInWording(),
+	}),
+	// The Brand and the Mode are settled for the life of the server process.
 	staleTime: Infinity,
 	head: ({ loaderData }) => ({
 		meta: [
