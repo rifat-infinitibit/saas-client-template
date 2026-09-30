@@ -29,7 +29,7 @@ export function ShellActions({ children }: { children: React.ReactNode }) {
 	return slot ? createPortal(children, slot) : null;
 }
 
-export interface NavItem {
+interface NavItem {
 	to: LinkProps['to'];
 	label: string;
 }
@@ -86,8 +86,7 @@ export function Shell({
 	);
 }
 
-// ponytail: drawn by the frame, but the platform has no Apps or Notifications
-// behind it yet. Give it an action when it does.
+// Drawn by the frame, but the platform has no Apps or Notifications behind it yet.
 function PlatformEntry({ icon, label }: { icon: IconName; label: string }) {
 	return (
 		<Button
@@ -162,8 +161,7 @@ async function signOut() {
 	location.assign('/');
 }
 
-// ponytail: the design system ships no nav item, so this one is written from
-// its tokens. Replace it when the package ships one.
+// The design system ships no nav item, so this one is written from its tokens.
 function NavLink({ to, label }: NavItem) {
 	return (
 		<Link
