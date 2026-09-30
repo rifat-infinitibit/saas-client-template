@@ -1,9 +1,22 @@
 import { AlertBanner } from '@infinitibit_gmbh/ui';
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
+
+import { mode } from '@/env.server';
 
 import appCss from '@/styles.css?url';
 
+// The whole of what the browser learns about the Mode. The Start compiler
+// swaps the handler for an RPC stub in the client build, taking the
+// `env.server` import with it.
+const readSignInWording = createServerFn({ method: 'GET' }).handler(() =>
+	mode() === 'saas' ? 'portal' : 'entra',
+);
+
 export const Route = createRootRoute({
+	loader: async () => ({ signIn: await readSignInWording() }),
+	// The Mode is settled for the life of the server process.
+	staleTime: Infinity,
 	head: () => ({
 		meta: [
 			{ charSet: 'utf-8' },
