@@ -19,6 +19,12 @@ export function platformAuthUrl() {
 	return url('PLATFORM_AUTH_URL');
 }
 
+// Optional: without it the proxy answers 501 rather than the whole deployment
+// refusing to start, so the client runs before its Service exists.
+export function serviceUrl() {
+	return process.env.SERVICE_URL ? url('SERVICE_URL') : null;
+}
+
 export function gtServerUrl() {
 	return url('GT_SERVER_URL');
 }

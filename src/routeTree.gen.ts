@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TenantSlugRouteImport } from './routes/$tenantSlug'
 import { Route as SessionRouteImport } from './routes/session'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const SigninRoute = SigninRouteImport.update({
   path: '/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSplatRoute = ApiSplatRouteImport.update({
+  id: '/api/$',
+  path: '/api/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/$tenantSlug': typeof TenantSlugRoute
   '/session': typeof SessionRoute
   '/signin': typeof SigninRoute
+  '/api/$': typeof ApiSplatRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/$tenantSlug': typeof TenantSlugRoute
   '/session': typeof SessionRoute
   '/signin': typeof SigninRoute
+  '/api/$': typeof ApiSplatRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesById {
@@ -61,19 +69,23 @@ export interface FileRoutesById {
   '/$tenantSlug': typeof TenantSlugRoute
   '/session': typeof SessionRoute
   '/signin': typeof SigninRoute
+  '/api/$': typeof ApiSplatRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$tenantSlug' | '/session' | '/signin' | '/auth/callback'
+  fullPaths:
+    '/' | '/$tenantSlug' | '/session' | '/signin' | '/api/$' | '/auth/callback'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$tenantSlug' | '/session' | '/signin' | '/auth/callback'
+  to:
+    '/' | '/$tenantSlug' | '/session' | '/signin' | '/api/$' | '/auth/callback'
   id:
     | '__root__'
     | '/'
     | '/$tenantSlug'
     | '/session'
     | '/signin'
+    | '/api/$'
     | '/auth/callback'
   fileRoutesById: FileRoutesById
 }
@@ -82,6 +94,7 @@ export interface RootRouteChildren {
   TenantSlugRoute: typeof TenantSlugRoute
   SessionRoute: typeof SessionRoute
   SigninRoute: typeof SigninRoute
+  ApiSplatRoute: typeof ApiSplatRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
@@ -115,6 +128,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/$': {
+      id: '/api/$'
+      path: '/api/$'
+      fullPath: '/api/$'
+      preLoaderRoute: typeof ApiSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -130,6 +150,7 @@ const rootRouteChildren: RootRouteChildren = {
   TenantSlugRoute: TenantSlugRoute,
   SessionRoute: SessionRoute,
   SigninRoute: SigninRoute,
+  ApiSplatRoute: ApiSplatRoute,
   AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
