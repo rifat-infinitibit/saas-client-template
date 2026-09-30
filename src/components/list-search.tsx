@@ -56,12 +56,14 @@ export function ListSearch({ label }: { label: string }) {
 	return (
 		<Input
 			aria-label={label}
+			className="max-w-sm"
 			leadingIcon={<Icon name="search" />}
 			onBlur={() => debouncer.flush()}
 			onChange={(event) => {
 				setDraft(event.target.value);
 				debouncer.maybeExecute(event.target.value);
 			}}
+			placeholder={label}
 			type="search"
 			value={draft}
 		/>
