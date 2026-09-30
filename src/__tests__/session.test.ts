@@ -1,0 +1,184 @@
+// @vitest-environment node
+
+import { http, HttpResponse } from 'msw';
+
+import { Route } from '@/routes/session';
+import { server } from '@/testing/msw';
+import { respond } from '@/testing/respond';
+
+const TOKEN = 'header.payload.signature';
+const REFRESH = 'a-refresh-token';
+const PLATFORM_AUTH_URL = 'https://auth.platform.example.com';
+
+const ENDED = [
+	'__Host-saas-client-template-session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
+	'__Host-saas-client-template-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
+];
+
+afterEach(() => {
+	vi.unstubAllEnvs();
+});
+
+function adopt(body: object, headers: Record<string, string> = {}) {
+	return respond(
+		Route,
+		new Request('http://localhost/session', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json', ...headers },
+			body: JSON.stringify(body),
+		}),
+	);
+}
+
+describe('adopting a SaaS Launch', () => {
+	beforeEach(() => {
+		vi.stubEnv('APP_MODE', 'saas');
+	});
+
+	it('holds both tokens in HttpOnly session cookies', async () => {
+		const response = await adopt({ token: TOKEN, refresh_token: REFRESH });
+
+		expect(response.status).toBe(204);
+		expect(response.headers.getSetCookie()).toEqual([
+			`__Host-saas-client-template-session=${TOKEN}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			`__Host-saas-client-template-refresh=${REFRESH}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+		]);
+	});
+
+	it('starts a Session from a Launch without a refresh token, dropping any previous one', async () => {
+		const response = await adopt({ token: TOKEN });
+
+		expect(response.status).toBe(204);
+		// A refresh token left from the last Session would be spent against the
+		// new one, and the platform answers reuse by revoking the whole family.
+		expect(response.headers.getSetCookie()).toEqual([
+			`__Host-saas-client-template-session=${TOKEN}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			'__Host-saas-client-template-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
+		]);
+	});
+});
+
+describe('adopting a Standalone arrival from gt', () => {
+	const ARRIVAL = '__Host-saas-client-template-arrival=1';
+
+	beforeEach(() => {
+		vi.stubEnv('APP_MODE', 'standalone');
+	});
+
+	it('holds the pair and spends the arrival cookie /signin left', async () => {
+		const response = await adopt(
+			{ token: TOKEN, refresh_token: REFRESH },
+			{ cookie: ARRIVAL },
+		);
+
+		expect(response.status).toBe(204);
+		expect(response.headers.getSetCookie()).toEqual([
+			`__Host-saas-client-template-session=${TOKEN}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			`__Host-saas-client-template-refresh=${REFRESH}; HttpOnly; Secure; SameSite=Lax; Path=/`,
+			'__Host-saas-client-template-arrival=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
+		]);
+	});
+
+	it('refuses an arrival this browser never started, which a crafted link can deliver', async () => {
+		const response = await adopt({ token: TOKEN, refresh_token: REFRESH });
+
+		expect(response.status).toBe(400);
+		expect(response.headers.getSetCookie()).toEqual([]);
+	});
+});
+
+describe('refusing an adoption', () => {
+	beforeEach(() => {
+		vi.stubEnv('APP_MODE', 'saas');
+	});
+
+	it.for([
+		['no token', {}],
+		['a token that is not a JWT', { token: 'not-a-jwt' }],
+		// Would become a second cookie, or a second header, on the way out.
+		['a token that breaks out of the cookie', { token: `${TOKEN}; Domain=x` }],
+		[
+			'a refresh token that breaks out of the cookie',
+			{ token: TOKEN, refresh_token: 'r; Path=/x' },
+		],
+	] as const)('refuses %s', async ([, body]) => {
+		const response = await adopt(body);
+
+		expect(response.status).toBe(400);
+		expect(response.headers.getSetCookie()).toEqual([]);
+	});
+
+	it('refuses a body that is not JSON, which a cross-site form can send', async () => {
+		const response = await respond(
+			Route,
+			new Request('http://localhost/session', {
+				method: 'POST',
+				headers: { 'content-type': 'text/plain' },
+				body: JSON.stringify({ token: TOKEN }),
+			}),
+		);
+
+		expect(response.status).toBe(400);
+		expect(response.headers.getSetCookie()).toEqual([]);
+	});
+});
+
+function signOut() {
+	return respond(
+		Route,
+		new Request('http://localhost/session', {
+			method: 'DELETE',
+			headers: {
+				cookie: `__Host-saas-client-template-session=${TOKEN}; __Host-saas-client-template-refresh=${REFRESH}`,
+			},
+		}),
+	);
+}
+
+describe('signing out', () => {
+	it('ends a SaaS Session at Platform Auth, not only here', async () => {
+		vi.stubEnv('APP_MODE', 'saas');
+		vi.stubEnv('PLATFORM_AUTH_URL', PLATFORM_AUTH_URL);
+		const revoked: (string | null)[] = [];
+
+		server.use(
+			http.post(`${PLATFORM_AUTH_URL}/api/v1/auth/logout`, ({ request }) => {
+				revoked.push(request.headers.get('authorization'));
+
+				return new HttpResponse(null, { status: 204 });
+			}),
+		);
+
+		const response = await signOut();
+
+		expect(revoked).toEqual([`Bearer ${TOKEN}`]);
+		expect(response.status).toBe(204);
+		expect(response.headers.getSetCookie()).toEqual(ENDED);
+	});
+
+	it('still signs out here when Platform Auth cannot be reached', async () => {
+		vi.stubEnv('APP_MODE', 'saas');
+		vi.stubEnv('PLATFORM_AUTH_URL', PLATFORM_AUTH_URL);
+		server.use(
+			http.post(`${PLATFORM_AUTH_URL}/api/v1/auth/logout`, () =>
+				HttpResponse.error(),
+			),
+		);
+
+		const response = await signOut();
+
+		expect(response.status).toBe(204);
+		expect(response.headers.getSetCookie()).toEqual(ENDED);
+	});
+
+	it('ends a Standalone Session by dropping it, since gt has nothing to revoke', async () => {
+		// gt's tokens are stateless and its `/logout` only clears gt's own cookies.
+		// An undeclared request fails the test, so this also asserts gt is not called.
+		vi.stubEnv('APP_MODE', 'standalone');
+
+		const response = await signOut();
+
+		expect(response.status).toBe(204);
+		expect(response.headers.getSetCookie()).toEqual(ENDED);
+	});
+});
