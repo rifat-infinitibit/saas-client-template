@@ -1,3 +1,4 @@
+import { AlertBanner } from '@infinitibit_gmbh/ui';
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
 
 import appCss from '@/styles.css?url';
@@ -12,7 +13,16 @@ export const Route = createRootRoute({
 		links: [{ rel: 'stylesheet', href: appCss }],
 	}),
 	shellComponent: RootDocument,
+	notFoundComponent: NotFound,
 });
+
+function NotFound() {
+	return (
+		<main>
+			<AlertBanner title="Page not found" />
+		</main>
+	);
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
