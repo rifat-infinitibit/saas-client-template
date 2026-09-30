@@ -5,3 +5,12 @@
 @import 'tailwindcss';
 @import '@infinitibit_gmbh/theme-default/theme.css';
 @import '@infinitibit_gmbh/ui/styles.css';
+@import '@fontsource-variable/dm-sans';
+@import './brand-gt.css';
+
+/* The components read the Brand's face themselves; this gives it to the page. */
+@layer base {
+	html {
+		font-family: var(--ib-font-family-base);
+	}
+}
