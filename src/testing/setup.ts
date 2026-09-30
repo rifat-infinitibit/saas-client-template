@@ -8,6 +8,14 @@ vi.mock('@tanstack/react-start', async (importOriginal) => ({
 	createServerFn: () => ({ handler: (fn: () => unknown) => fn }),
 }));
 
+// The request a server function sees is the browser's: jsdom's address and
+// cookie jar.
+vi.mock('@tanstack/react-start/server', async (importOriginal) => ({
+	...(await importOriginal<typeof import('@tanstack/react-start/server')>()),
+	getRequest: () =>
+		new Request(location.href, { headers: { cookie: document.cookie } }),
+}));
+
 // jsdom lays nothing out and leaves `scrollTo` unimplemented; the router calls
 // it after every navigation. Guarded for suites that run under `node`.
 if (typeof window !== 'undefined') {
@@ -19,6 +27,9 @@ beforeAll(() => {
 });
 afterEach(() => {
 	server.resetHandlers();
+	if (typeof document !== 'undefined')
+		for (const cookie of document.cookie.split('; ').filter(Boolean))
+			document.cookie = `${cookie.split('=')[0]}=; Path=/; Secure; Max-Age=0`;
 });
 afterAll(() => {
 	server.close();

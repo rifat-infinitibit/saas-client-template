@@ -1,5 +1,12 @@
 {
 	"$schema": "https://inlang.com/schema/inlang-message-format",
 	"home_running": "The template is running.",
-	"not_found_title": "Page not found"
+	"not_found_title": "Page not found",
+	"gate_sign_in_title": "Sign in to continue",
+	"gate_sign_in_portal": "Your session has ended. Open this Application again from your tenant portal.",
+	"gate_sign_in_entra": "Your session has ended. Sign in with your Microsoft account to continue.",
+	"gate_not_provisioned_title": "No access to this Application",
+	"gate_not_provisioned_description": "Your workspace is not set up for this Application. Ask your administrator for access.",
+	"gate_action_portal": "Open tenant portal",
+	"gate_action_entra": "Sign in with Microsoft"
 }

@@ -9,21 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as TenantSlugRouteImport } from './routes/$tenantSlug'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as SessionRouteImport } from './routes/session'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TenantSlugRoute = TenantSlugRouteImport.update({
   id: '/$tenantSlug',
   path: '/$tenantSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SessionRoute = SessionRouteImport.update({
@@ -35,6 +35,11 @@ const SigninRoute = SigninRouteImport.update({
   id: '/signin',
   path: '/signin',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
@@ -48,50 +53,52 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/$tenantSlug': typeof TenantSlugRoute
+  '/': typeof AuthenticatedIndexRoute
   '/session': typeof SessionRoute
   '/signin': typeof SigninRoute
   '/api/$': typeof ApiSplatRoute
   '/auth/callback': typeof AuthCallbackRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/$tenantSlug': typeof TenantSlugRoute
   '/session': typeof SessionRoute
   '/signin': typeof SigninRoute
   '/api/$': typeof ApiSplatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
   '/$tenantSlug': typeof TenantSlugRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/session': typeof SessionRoute
   '/signin': typeof SigninRoute
   '/api/$': typeof ApiSplatRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/$tenantSlug' | '/session' | '/signin' | '/api/$' | '/auth/callback'
+    '/$tenantSlug' | '/' | '/session' | '/signin' | '/api/$' | '/auth/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/$tenantSlug' | '/session' | '/signin' | '/api/$' | '/auth/callback'
+    '/$tenantSlug' | '/session' | '/signin' | '/api/$' | '/auth/callback' | '/'
   id:
     | '__root__'
-    | '/'
     | '/$tenantSlug'
+    | '/_authenticated'
     | '/session'
     | '/signin'
     | '/api/$'
     | '/auth/callback'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
   TenantSlugRoute: typeof TenantSlugRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   SessionRoute: typeof SessionRoute
   SigninRoute: typeof SigninRoute
   ApiSplatRoute: typeof ApiSplatRoute
@@ -100,18 +107,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/$tenantSlug': {
       id: '/$tenantSlug'
       path: '/$tenantSlug'
       fullPath: '/$tenantSlug'
       preLoaderRoute: typeof TenantSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/session': {
@@ -127,6 +134,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/signin'
       preLoaderRoute: typeof SigninRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/api/$': {
       id: '/api/$'
@@ -145,9 +159,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   TenantSlugRoute: TenantSlugRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
   SessionRoute: SessionRoute,
   SigninRoute: SigninRoute,
   ApiSplatRoute: ApiSplatRoute,

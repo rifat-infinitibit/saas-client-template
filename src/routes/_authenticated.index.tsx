@@ -5,7 +5,7 @@ import { createFileRoute, useLoaderData } from '@tanstack/react-router';
 import { brandAsset, brandNames } from '@/brand';
 import { m } from '@/paraglide/messages';
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute('/_authenticated/')({
 	component: Home,
 });
 

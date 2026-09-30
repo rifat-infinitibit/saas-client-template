@@ -71,6 +71,35 @@ export function readSession(request: Request) {
 	};
 }
 
+// Unverified: it only picks the screen, and upstream checks the signature on
+// every call. The leeway errs towards the Application over a skewed clock.
+const LEEWAY_SECONDS = 60;
+
+export function hasLiveSession(request: Request) {
+	const { access, refresh } = readSession(request);
+
+	if (access === null) return false;
+	// The proxy renews an expired token on the first refusal.
+	if (refresh !== null) return true;
+
+	const expiry = expiryOf(access);
+
+	return expiry === null || expiry + LEEWAY_SECONDS > Date.now() / 1000;
+}
+
+// Null when unreadable, which leaves the call to upstream.
+function expiryOf(token: string) {
+	try {
+		const { exp } = JSON.parse(
+			Buffer.from(token.split('.')[1], 'base64url').toString(),
+		) as { exp?: unknown };
+
+		return typeof exp === 'number' ? exp : null;
+	} catch {
+		return null;
+	}
+}
+
 export async function endSession(request: Request) {
 	const token = cookieValue(request, SESSION_COOKIE);
 

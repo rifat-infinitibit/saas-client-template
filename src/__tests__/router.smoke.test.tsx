@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react';
 
 import { renderRouter } from '@/testing/render-router';
+import { holdSession } from '@/testing/session';
 
 afterEach(() => {
 	vi.unstubAllEnvs();
@@ -8,6 +9,7 @@ afterEach(() => {
 
 it('draws the home route from the design system', async () => {
 	vi.stubEnv('APP_MODE', 'saas');
+	holdSession();
 
 	await renderRouter('/');
 
