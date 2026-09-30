@@ -159,6 +159,7 @@ describe('creating a Note', () => {
 		fireEvent.change(title, { target: { value: 'x' } });
 		fireEvent.change(title, { target: { value: '' } });
 		expect(title.getAttribute('aria-invalid')).not.toBe('true');
+		expect(within(dialog).queryByText('Enter a title.')).toBeNull();
 
 		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
 
