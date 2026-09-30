@@ -1,0 +1,86 @@
+# The example Service's contract. `API_SPEC` points `pnpm api:generate` at a
+# real Service's spec instead; delete this file with the Notes feature.
+openapi: 3.1.0
+info:
+  title: Example Service
+  version: 0.1.0
+paths:
+  /api/notes:
+    get:
+      tags: [notes]
+      summary: List Notes
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: size
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: search
+          in: query
+          description: Matches a Note's title or body, ignoring case.
+          schema: { type: string }
+      responses:
+        '200':
+          description: One page of Notes, newest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotePage' }
+        '401':
+          $ref: '#/components/responses/Refused'
+    post:
+      tags: [notes]
+      summary: Create Note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NoteCreate' }
+      responses:
+        '201':
+          description: The Note as stored.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Note' }
+        '401':
+          $ref: '#/components/responses/Refused'
+        '422':
+          $ref: '#/components/responses/Refused'
+components:
+  responses:
+    Refused:
+      description: The Service's refusal.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Refusal' }
+  schemas:
+    Note:
+      type: object
+      required: [id, title, body, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, maxLength: 200 }
+        body: { type: string }
+        created_at: { type: string, format: date-time }
+    NoteCreate:
+      type: object
+      required: [title, body]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        body: { type: string }
+    NotePage:
+      type: object
+      required: [items, total, page, size]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Note' }
+        total: { type: integer, minimum: 0 }
+        page: { type: integer, minimum: 1 }
+        size: { type: integer, minimum: 1 }
+    Refusal:
+      type: object
+      required: [detail]
+      properties:
+        detail: { type: string }
+        error_code: { type: string }

@@ -14,7 +14,8 @@
 		"type:check": "pnpm i18n:compile && tsc",
 		"i18n:compile": "paraglide-js compile --project ./project.inlang",
 		"commit": "cz",
-		"prepare": "husky && pnpm i18n:compile"
+		"prepare": "husky && pnpm i18n:compile",
+		"api:generate": "orval"
 	},
 	"config": {
 		"commitizen": {
@@ -36,12 +37,15 @@
 		"@tanstack/react-router": "^1.170.40",
 		"@tanstack/react-router-ssr-query": "^1.167.3",
 		"@tanstack/react-start": "^1.168.59",
+		"@tanstack/react-table": "^9.2.4",
+		"axios": "^1.20.0",
 		"react": "^19.3.0",
 		"react-dom": "^19.3.0"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^21.2.3",
 		"@commitlint/config-conventional": "^21.2.3",
+		"@faker-js/faker": "^10.6.0",
 		"@inlang/paraglide-js": "^2.25.4",
 		"@rolldown/plugin-babel": "^0.2.4",
 		"@shadcn/lint": "^0.2.0",
@@ -62,6 +66,7 @@
 		"lint-staged": "^17.6.0",
 		"msw": "^3.0.0",
 		"nitro": "3.0.260903-beta",
+		"orval": "^8.38.0",
 		"oxfmt": "0.71.0",
 		"oxlint": "1.86.0",
 		"oxlint-tsgolint": "7.0.2003",
