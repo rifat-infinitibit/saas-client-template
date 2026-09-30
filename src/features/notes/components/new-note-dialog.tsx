@@ -1,4 +1,5 @@
 import {
+	AlertBanner,
 	Button,
 	Dialog,
 	DialogBody,
@@ -90,6 +91,10 @@ function NewNoteForm({ onCreated }: { onCreated: () => void }) {
 			</DialogHeader>
 			<DialogBody>
 				<div className="flex flex-col gap-4">
+					{/* In the dialog, not a toast: what was typed is still here to retry. */}
+					{create.isError ? (
+						<AlertBanner title={m.notes_create_error()} variant="error" />
+					) : null}
 					<form.Field name="title">
 						{(field) => (
 							<div className="flex flex-col gap-1">

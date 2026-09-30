@@ -211,6 +211,49 @@ describe('creating a Note', () => {
 		expect(screen.queryByRole('dialog')).toBeNull();
 	});
 
+	it('keeps the dialog and what was typed when the Service fails', async () => {
+		server.use(
+			pagedNotes(notes),
+			http.post(`${location.origin}/api/notes`, () =>
+				HttpResponse.json({ detail: 'Boom' }, { status: 500 }),
+			),
+		);
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		const title = within(dialog).getByRole('textbox', { name: 'Title' });
+		fireEvent.change(title, { target: { value: 'Groceries' } });
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+		expect(
+			await within(dialog).findByText('The note could not be created.'),
+		).toBeTruthy();
+		expect((title as HTMLInputElement).value).toBe('Groceries');
+	});
+
+	it('draws the Session gate when the Service refuses the create', async () => {
+		server.use(
+			pagedNotes(notes),
+			http.post(`${location.origin}/api/notes`, () =>
+				HttpResponse.json(
+					{ detail: 'Not authenticated', error_code: 'NOT_AUTHENTICATED' },
+					{ status: 401 },
+				),
+			),
+		);
+
+		await renderRouter('/notes');
+		const dialog = await openNewNote();
+		fireEvent.change(within(dialog).getByRole('textbox', { name: 'Title' }), {
+			target: { value: 'Groceries' },
+		});
+		fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }));
+
+		expect(
+			await screen.findByRole('heading', { name: 'Sign in to continue' }),
+		).toBeTruthy();
+	});
+
 	it('says what is wrong in German under de', async () => {
 		document.cookie = `${cookieName}=de`;
 		server.use(pagedNotes(notes));

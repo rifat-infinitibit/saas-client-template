@@ -36,5 +36,6 @@
 	"notes_create": "Create",
 	"notes_cancel": "Cancel",
 	"notes_dialog_close": "Close",
-	"notes_created": "Note created."
+	"notes_created": "Note created.",
+	"notes_create_error": "The note could not be created."
 }
