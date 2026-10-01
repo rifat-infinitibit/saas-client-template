@@ -23,16 +23,24 @@ root.addChildren([
 ]);
 
 // How a refusal reaches a Screen: the body the proxy relays, as the cause.
-const refusal = (body: object) => new Error('refused', { cause: body });
+interface Refusal {
+	error_code?: string;
+	detail?: string;
+}
+
+const refusal = (body: Refusal) => new Error('refused', { cause: body });
 
 const SIGN_IN = 'Sign in to continue';
+
 const NOT_PROVISIONED = 'No access to this Application';
+
 const ROUTER_ERROR = /something went wrong/i;
 
 beforeEach(() => {
 	vi.stubEnv('APP_MODE', 'saas');
 	holdSession();
 });
+
 afterEach(() => {
 	vi.unstubAllEnvs();
 });
@@ -42,10 +50,11 @@ async function heading() {
 }
 
 describe('the classifier, as the router default error component', () => {
-	async function throwing(error: unknown) {
+	async function throwing(error: Error) {
 		Screen = () => {
 			throw error;
 		};
+
 		await renderRouter('/');
 	}
 
@@ -105,7 +114,7 @@ describe('the classifier, as the router default error component', () => {
 			'a code named after an Object key',
 			refusal({ error_code: 'constructor' }),
 		],
-	])('leaves %s to the router', async ([, error]) => {
+	] as const)('leaves %s to the router', async ([, error]) => {
 		await throwing(error);
 
 		expect(await screen.findByText(ROUTER_ERROR)).toBeTruthy();
@@ -113,7 +122,7 @@ describe('the classifier, as the router default error component', () => {
 });
 
 describe('a query', () => {
-	function identityAnswers(status: number, body: object) {
+	function identityAnswers(status: number, body: Refusal) {
 		const asked: string[] = [];
 
 		server.use(
@@ -160,7 +169,7 @@ describe('a query', () => {
 });
 
 describe('a mutation', () => {
-	function saveAnswer(status: number, body: object) {
+	function saveAnswer(status: number, body: Refusal) {
 		server.use(
 			http.post(`${location.origin}/api/items`, () =>
 				HttpResponse.json(body, { status }),

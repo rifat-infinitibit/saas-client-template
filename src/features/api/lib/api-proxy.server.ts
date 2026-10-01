@@ -1,9 +1,12 @@
+import { z } from 'zod';
+
 import { FACADE_PREFIX } from '@/application';
 import { gtServerUrl, mode, serviceUrl } from '@/env.server';
 import {
 	FORWARDED_TAGS,
 	IDENTITY_PATH,
 	type Identity,
+	identitySchema,
 } from '@/features/api/lib/api';
 import {
 	dropSession,
@@ -14,6 +17,7 @@ import {
 
 // Anything else could carry a credential or a claim the Service would believe.
 const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type'];
+
 // The Session is ours to set, and fetch has already decoded the body these
 // would describe.
 const WITHHELD_RESPONSE_HEADERS = [
@@ -21,6 +25,22 @@ const WITHHELD_RESPONSE_HEADERS = [
 	'content-encoding',
 	'content-length',
 ];
+
+const grantsSchema = identitySchema.omit({ workspace: true });
+
+// Either upstream's answer: the Service's session in SaaS, gt's signed-in user
+// in Standalone, which has one tenant and no Workspace.
+const serviceIdentitySchema = grantsSchema
+	.extend({ tenant_slug: z.string().nullable() })
+	.transform(({ tenant_slug, ...grants }): Identity => ({
+		...grants,
+		workspace: tenant_slug,
+	}));
+
+const gtIdentitySchema = grantsSchema.transform((grants): Identity => ({
+	...grants,
+	workspace: null,
+}));
 
 export async function proxy(request: Request) {
 	const { pathname, search } = new URL(request.url);
@@ -30,6 +50,7 @@ export async function proxy(request: Request) {
 		return new Response(null, { status: 404 });
 
 	const standalone = mode() === 'standalone';
+
 	const target = upstreamUrl(
 		identity ? null : `${pathname}${search}`,
 		standalone,
@@ -61,8 +82,10 @@ export async function proxy(request: Request) {
 	// Buffered, so a replay can send it again.
 	const body =
 		request.method === 'GET' ? undefined : await request.arrayBuffer();
+
 	const send = (bearer: string) => {
 		headers.set('authorization', `Bearer ${bearer}`);
+
 		// The Facade reads gt's own cookie and ignores the bearer.
 		if (standalone) headers.set('cookie', `sso_access_token=${bearer}`);
 
@@ -75,6 +98,7 @@ export async function proxy(request: Request) {
 	};
 
 	let upstream = await send(access);
+
 	const renewed =
 		upstream.status === 401 && refresh !== null
 			? await renewSession(refresh)
@@ -93,15 +117,14 @@ export async function proxy(request: Request) {
 	else if (renewed) holdSession(answered, renewed);
 
 	if (identity && upstream.ok) {
-		const described = identityFrom(
-			await upstream.json().catch(() => null),
-			standalone,
-		);
+		const described = (
+			standalone ? gtIdentitySchema : serviceIdentitySchema
+		).safeParse(await upstream.json().catch(() => null));
 
 		// Headers still go out, so a renewed pair is held either way.
-		return described === null
-			? new Response(null, { status: 502, headers: answered })
-			: Response.json(described, { headers: answered });
+		return described.success
+			? Response.json(described.data, { headers: answered })
+			: new Response(null, { status: 502, headers: answered });
 	}
 
 	return new Response(upstream.body, {
@@ -122,29 +145,6 @@ function upstreamUrl(path: string | null, standalone: boolean) {
 	const service = serviceUrl();
 
 	return service === null ? null : new URL(path ?? '/api/session', service);
-}
-
-// By hand from either upstream's answer: the Service's session in SaaS, gt's
-// signed-in user in Standalone, which has one tenant and no Workspace.
-function identityFrom(body: unknown, standalone: boolean): Identity | null {
-	const { email, tenant_slug, roles, permissions } = (body ?? {}) as Record<
-		string,
-		unknown
-	>;
-	const workspace = standalone ? null : tenant_slug;
-
-	return (typeof email === 'string' || email === null) &&
-		(typeof workspace === 'string' || workspace === null) &&
-		isStrings(roles) &&
-		isStrings(permissions)
-		? { email, workspace, roles, permissions }
-		: null;
-}
-
-function isStrings(value: unknown): value is string[] {
-	return (
-		Array.isArray(value) && value.every((item) => typeof item === 'string')
-	);
 }
 
 function forwardable(pathname: string) {

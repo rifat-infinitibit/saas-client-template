@@ -5,6 +5,7 @@ export const brandNames = {
 
 export type Brand = keyof typeof brandNames;
 
+// SAFETY: brandNames is a literal, so its keys are exactly the Brands.
 export const brands = Object.keys(brandNames) as Brand[];
 
 // A typo in APP_BRAND leaves a working app in the wrong colours, which is not

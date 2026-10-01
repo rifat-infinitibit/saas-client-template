@@ -1,20 +1,35 @@
+import { z } from 'zod';
+
 import { COOKIE_PREFIX } from '@/application';
 import { gtServerUrl, mode, platformAuthUrl } from '@/env.server';
 
 export const SESSION_COOKIE = `${COOKIE_PREFIX}-session`;
+
 export const REFRESH_COOKIE = `${COOKIE_PREFIX}-refresh`;
+
 const ARRIVAL_COOKIE = `${COOKIE_PREFIX}-arrival`;
 
 // No lifetime: the token's own expiry bounds access, upstream enforces it.
 const ATTRIBUTES = 'HttpOnly; Secure; SameSite=Lax; Path=/';
 
 const held = (name: string, value: string) => `${name}=${value}; ${ATTRIBUTES}`;
+
 const expired = (name: string) => `${name}=; ${ATTRIBUTES}; Max-Age=0`;
 
 // Both come from a fragment anyone can craft and go into a Set-Cookie, where a
 // `;`, comma or newline would start a second attribute or header.
 const JWT = /^[\w-]+\.[\w-]+\.[\w-]+$/;
+
 const COOKIE_SAFE = /^[\w.~+/=-]+$/;
+
+const jwt = z.string().regex(JWT);
+
+const cookieSafe = z.string().regex(COOKIE_SAFE);
+
+const launchSchema = z.object({
+	token: jwt,
+	refresh_token: cookieSafe.optional(),
+});
 
 // Left by `/signin` on a browser it sends to gt, spent by adoption: a link to
 // gt's public callback can carry anyone's pair, but not a `__Host-` cookie
@@ -29,18 +44,11 @@ export async function adoptSession(request: Request) {
 	if (!request.headers.get('content-type')?.startsWith('application/json'))
 		return refused();
 
-	const body: unknown = await request.json().catch(() => null);
-	const { token, refresh_token: refresh } = (body ?? {}) as Record<
-		string,
-		unknown
-	>;
+	const launch = launchSchema.safeParse(await request.json().catch(() => null));
 
-	if (typeof token !== 'string' || !JWT.test(token)) return refused();
-	if (
-		refresh !== undefined &&
-		(typeof refresh !== 'string' || !COOKIE_SAFE.test(refresh))
-	)
-		return refused();
+	if (!launch.success) return refused();
+
+	const { token, refresh_token: refresh } = launch.data;
 
 	// SaaS has no mark to ask for: a portal Launch never passes through `/signin`.
 	const standalone = mode() === 'standalone';
@@ -59,6 +67,7 @@ export async function adoptSession(request: Request) {
 			? expired(REFRESH_COOKIE)
 			: held(REFRESH_COOKIE, refresh),
 	);
+
 	if (standalone) headers.append('set-cookie', expired(ARRIVAL_COOKIE));
 
 	return new Response(null, { status: 204, headers });
@@ -75,10 +84,13 @@ export function readSession(request: Request) {
 // every call. The leeway errs towards the Application over a skewed clock.
 const LEEWAY_SECONDS = 60;
 
+const claimsSchema = z.object({ exp: z.number().optional() });
+
 export function hasLiveSession(request: Request) {
 	const { access, refresh } = readSession(request);
 
 	if (access === null) return false;
+
 	// The proxy renews an expired token on the first refusal.
 	if (refresh !== null) return true;
 
@@ -90,11 +102,11 @@ export function hasLiveSession(request: Request) {
 // Null when unreadable, which leaves the call to upstream.
 function expiryOf(token: string) {
 	try {
-		const { exp } = JSON.parse(
-			Buffer.from(token.split('.')[1], 'base64url').toString(),
-		) as { exp?: unknown };
+		const { exp } = claimsSchema.parse(
+			JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()),
+		);
 
-		return typeof exp === 'number' ? exp : null;
+		return exp ?? null;
 	} catch {
 		return null;
 	}
@@ -124,6 +136,21 @@ interface Pair {
 	refresh: string;
 }
 
+// Headed for a Set-Cookie, so checked as strictly as a Launch.
+const platformPairSchema = z
+	.object({ access_token: jwt, refresh_token: cookieSafe })
+	.transform(({ access_token, refresh_token }) => ({
+		access: access_token,
+		refresh: refresh_token,
+	}));
+
+const gtPairSchema = z
+	.object({ sso_access_token: jwt, sso_refresh_token: cookieSafe })
+	.transform(({ sso_access_token, sso_refresh_token }) => ({
+		access: sso_access_token,
+		refresh: sso_refresh_token,
+	}));
+
 export function holdSession(headers: Headers, pair: Pair) {
 	headers.append('set-cookie', held(SESSION_COOKIE, pair.access));
 	headers.append('set-cookie', held(REFRESH_COOKIE, pair.refresh));
@@ -132,6 +159,7 @@ export function holdSession(headers: Headers, pair: Pair) {
 // A request that left before the renewed cookies landed still carries the
 // spent refresh token, so the answer is kept a while for it too.
 const RETAINED_MS = 60_000;
+
 // In-process: two instances serving one browser would each spend the token.
 // A shared store closes that once there are two.
 const renewals = new Map<string, Promise<Pair | null>>();
@@ -171,9 +199,7 @@ async function renewAtPlatformAuth(refresh: string) {
 			return null;
 		}
 
-		const body = (await response.json()) as Record<string, unknown>;
-
-		return pairOf(body.access_token, body.refresh_token);
+		return platformPairSchema.safeParse(await response.json()).data ?? null;
 	} catch {
 		return null;
 	}
@@ -196,7 +222,7 @@ async function renewAtGt(refresh: string) {
 
 		if (!response.ok) return null;
 
-		const issued = new Map(
+		const issued = Object.fromEntries(
 			response.headers.getSetCookie().map((cookie) => {
 				const [name, ...value] = cookie.split(';')[0].split('=');
 
@@ -204,23 +230,10 @@ async function renewAtGt(refresh: string) {
 			}),
 		);
 
-		return pairOf(
-			issued.get('sso_access_token'),
-			issued.get('sso_refresh_token'),
-		);
+		return gtPairSchema.safeParse(issued).data ?? null;
 	} catch {
 		return null;
 	}
-}
-
-// Headed for a Set-Cookie, so checked as strictly as a Launch.
-function pairOf(access: unknown, refresh: unknown): Pair | null {
-	return typeof access === 'string' &&
-		JWT.test(access) &&
-		typeof refresh === 'string' &&
-		COOKIE_SAFE.test(refresh)
-		? { access, refresh }
-		: null;
 }
 
 async function revokeAtPlatformAuth(token: string) {

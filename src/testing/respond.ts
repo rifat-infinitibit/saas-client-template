@@ -19,10 +19,13 @@ export async function respond(
 	request: Request,
 	params: Record<string, string> = {},
 ) {
+	// SAFETY: Start keeps a server route's handlers under `options.server`,
+	// which `AnyRoute` leaves untyped.
 	const handlers = (route.options as { server?: { handlers?: Handlers } })
 		.server?.handlers;
+
 	const method = handlers?.[request.method] ?? handlers?.ANY;
-	const handler = typeof method === 'function' ? method : method?.handler;
+	const handler = method instanceof Function ? method : method?.handler;
 
 	if (!handler)
 		throw new Error(`${route.id} does not answer ${request.method}`);

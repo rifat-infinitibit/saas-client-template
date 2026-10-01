@@ -42,6 +42,7 @@ beforeEach(() => {
 		),
 	);
 });
+
 afterEach(() => {
 	vi.unstubAllEnvs();
 });
@@ -59,6 +60,7 @@ it("draws the Application's navigation in the top bar, marking the current Scree
 	await renderRouter('/');
 
 	const banner = await screen.findByRole('banner');
+
 	const home = within(
 		within(banner).getByRole('navigation', { name: 'Application' }),
 	).getByRole('link', { name: 'Home' });
@@ -87,6 +89,7 @@ it('names the Identity and its Workspace in the account menu', async () => {
 
 it('switches the language from the account menu and keeps it in the cookie', async () => {
 	const menu = await openAccountMenu();
+
 	const english = within(menu).getByRole('menuitemcheckbox', {
 		name: 'English',
 	});
@@ -106,6 +109,7 @@ it('signs out through the Session route', async () => {
 	server.use(
 		http.delete(`${location.origin}/session`, () => {
 			ended();
+
 			return new HttpResponse(null, { status: 204 });
 		}),
 	);

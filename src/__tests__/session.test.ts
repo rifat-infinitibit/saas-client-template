@@ -8,7 +8,9 @@ import { server } from '@/testing/msw';
 import { respond } from '@/testing/respond';
 
 const TOKEN = 'header.payload.signature';
+
 const REFRESH = 'a-refresh-token';
+
 const PLATFORM_AUTH_URL = 'https://auth.platform.example.com';
 
 const ENDED = [
@@ -20,7 +22,10 @@ afterEach(() => {
 	vi.unstubAllEnvs();
 });
 
-function adopt(body: object, headers: Record<string, string> = {}) {
+function adopt(
+	body: { token?: string; refresh_token?: string },
+	headers: Record<string, string> = {},
+) {
 	return respond(
 		Route,
 		new Request('http://localhost/session', {

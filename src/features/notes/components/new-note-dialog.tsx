@@ -64,6 +64,7 @@ export function NewNoteDialog() {
 
 function NewNoteForm({ onCreated }: { onCreated: () => void }) {
 	const queryClient = useQueryClient();
+
 	const create = useCreateNote({
 		mutation: {
 			onSuccess: () => {
@@ -75,7 +76,9 @@ function NewNoteForm({ onCreated }: { onCreated: () => void }) {
 			},
 		},
 	});
+
 	const schema = noteSchema();
+
 	const form = useForm({
 		defaultValues: { title: '', body: '' },
 		validationLogic: revalidateLogic(),
