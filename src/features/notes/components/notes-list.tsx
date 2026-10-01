@@ -34,6 +34,7 @@ const notesColumns = () =>
 export function NotesList() {
 	const { page, size, search } = route.useSearch();
 	const navigate = route.useNavigate();
+
 	const notes = useListNotes(
 		{ page, size, search: search || undefined },
 		{ query: { placeholderData: keepPreviousData } },

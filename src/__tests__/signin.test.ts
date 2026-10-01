@@ -5,6 +5,7 @@ import { Route } from '@/routes/signin';
 import { respond } from '@/testing/respond';
 
 const PORTAL_URL = 'https://portal.example.com/';
+
 const GT_URL = 'https://gt.example.com';
 
 afterEach(() => {

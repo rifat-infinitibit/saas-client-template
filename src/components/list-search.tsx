@@ -32,9 +32,11 @@ export function ListSearch({ label }: { label: string }) {
 		select: (search: Partial<z.output<typeof listSearchSchema>>) =>
 			search.search ?? '',
 	});
+
 	const navigate = useNavigate();
 	const [draft, setDraft] = React.useState(value);
 	const [seen, setSeen] = React.useState(value);
+
 	const debouncer = useDebouncer(
 		(typed: string) => {
 			// Back or a link replaced the draft while this waited.
@@ -52,6 +54,7 @@ export function ListSearch({ label }: { label: string }) {
 
 	if (value !== seen) {
 		setSeen(value);
+
 		if (value !== draft.trim()) setDraft(value);
 	}
 

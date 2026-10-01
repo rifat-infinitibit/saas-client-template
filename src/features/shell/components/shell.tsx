@@ -43,6 +43,7 @@ export function Shell({
 	children: React.ReactNode;
 }) {
 	const { brand } = useLoaderData({ from: '__root__' });
+
 	const [actionsSlot, setActionsSlot] = React.useState<HTMLElement | null>(
 		null,
 	);

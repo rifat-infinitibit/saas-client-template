@@ -4,11 +4,13 @@ import { renderRouter } from '@/testing/render-router';
 import { holdSession, tokenWith } from '@/testing/session';
 
 const APPLICATION = 'The template is running.';
+
 const now = () => Math.floor(Date.now() / 1000);
 
 beforeEach(() => {
 	vi.stubEnv('APP_MODE', 'saas');
 });
+
 afterEach(() => {
 	vi.unstubAllEnvs();
 });

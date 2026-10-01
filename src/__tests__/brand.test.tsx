@@ -8,6 +8,7 @@ import { renderRouter } from '@/testing/render-router';
 beforeEach(() => {
 	vi.stubEnv('APP_MODE', 'saas');
 });
+
 afterEach(() => {
 	vi.unstubAllEnvs();
 });
