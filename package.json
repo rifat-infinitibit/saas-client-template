@@ -51,6 +51,7 @@
 		"@commitlint/config-conventional": "^21.2.3",
 		"@faker-js/faker": "^10.6.0",
 		"@inlang/paraglide-js": "^2.25.4",
+		"@oxlint/plugins": "1.86.0",
 		"@rolldown/plugin-babel": "^0.2.4",
 		"@shadcn/lint": "^0.2.0",
 		"@tailwindcss/vite": "^4.3.3",

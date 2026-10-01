@@ -14,5 +14,9 @@
 	"sortImports": {
 		"internalPattern": ["@/"]
 	},
-	"ignorePatterns": ["pnpm-lock.yaml", "src/routeTree.gen.ts"]
+	"ignorePatterns": [
+		"pnpm-lock.yaml",
+		"src/routeTree.gen.ts",
+		"lint/anti-slop/"
+	]
 }
