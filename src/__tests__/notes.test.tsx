@@ -30,6 +30,7 @@ beforeEach(() => {
 		),
 	);
 });
+
 afterEach(() => {
 	vi.unstubAllEnvs();
 	vi.unstubAllGlobals();
@@ -124,6 +125,7 @@ it('searches once typing stops, from the first page, in the same history entry',
 	server.use(
 		http.get(`${location.origin}/api/notes`, ({ request }) => {
 			const search = new URL(request.url).searchParams.get('search');
+
 			if (search !== null) searched.push(search);
 		}),
 		pagedNotes(notes),
@@ -132,6 +134,7 @@ it('searches once typing stops, from the first page, in the same history entry',
 	const router = await renderRouter('/notes?page=2');
 	await screen.findByRole('cell', { name: 'Note 21' });
 	const entries = router.history.length;
+
 	const field = screen.getByRole<HTMLInputElement>('searchbox', {
 		name: 'Search notes',
 	});
@@ -170,9 +173,11 @@ it('says so when nothing matches the search', async () => {
 
 it('keeps the current page on screen while the next one loads', async () => {
 	let answer: () => void = () => undefined;
+
 	const answered = new Promise<void>((resolve) => {
 		answer = resolve;
 	});
+
 	let asked = false;
 	server.use(
 		// Holds the second page back, then falls through to the paged handler.
@@ -215,9 +220,11 @@ it('follows the address when Back changes the search', async () => {
 	const router = await renderRouter('/notes');
 	await screen.findByRole('cell', { name: 'Note 1' });
 	await router.navigate({ to: '/notes', search: { search: 'note 2' } });
+
 	const field = screen.getByRole<HTMLInputElement>('searchbox', {
 		name: 'Search notes',
 	});
+
 	await waitFor(() => expect(field.value).toBe('note 2'));
 
 	router.history.back();
@@ -232,9 +239,11 @@ it('drops a search still being typed when Back moves away from it', async () => 
 	const router = await renderRouter('/notes');
 	await screen.findByRole('cell', { name: 'Note 1' });
 	await router.navigate({ to: '/notes', search: { search: 'note 1' } });
+
 	const field = screen.getByRole<HTMLInputElement>('searchbox', {
 		name: 'Search notes',
 	});
+
 	await waitFor(() => expect(field.value).toBe('note 1'));
 	fireEvent.change(field, { target: { value: 'note 2' } });
 
@@ -414,7 +423,7 @@ describe('creating a Note', () => {
 		expect(
 			await within(dialog).findByText('The note could not be created.'),
 		).toBeTruthy();
-		expect((title as HTMLInputElement).value).toBe('Groceries');
+		expect(title).toHaveProperty('value', 'Groceries');
 	});
 
 	it('draws the Session gate when the Service refuses the create', async () => {

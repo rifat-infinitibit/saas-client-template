@@ -26,6 +26,7 @@ export function sampleNotes() {
 export function createdNotes(notes: Note[]) {
 	return getCreateNoteMockHandler(async ({ request }) => {
 		const note = getCreateNoteResponseMock({
+			// SAFETY: only the generated client posts here, and it sends a NoteCreate.
 			...((await request.json()) as NoteCreate),
 			created_at: new Date().toISOString(),
 		});
@@ -43,6 +44,7 @@ export function pagedNotes(notes: Note[]) {
 		const page = Number(searchParams.get('page') ?? 1);
 		const size = Number(searchParams.get('size') ?? 20);
 		const search = searchParams.get('search')?.toLowerCase() ?? '';
+
 		const matches = notes.filter((note) =>
 			`${note.title}\n${note.body}`.toLowerCase().includes(search),
 		);
