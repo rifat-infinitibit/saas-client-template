@@ -4,6 +4,7 @@ import {
 	type ErrorComponentProps,
 	useLoaderData,
 } from '@tanstack/react-router';
+import { z } from 'zod';
 
 import { brandAsset, brandNames } from '@/features/brand/lib/brand';
 import { m } from '@/paraglide/messages';
@@ -32,21 +33,16 @@ const GATE_BY_ERROR_CODE = new Map<string, GateState>([
 
 // A call throws the refusal's body as the error's `cause`, as `identity.ts`
 // does; a generated client's mutator must too, or its refusals skip the gate.
-export function sessionGateFor(error: unknown): GateState | null {
-	const body = error instanceof Error ? error.cause : null;
-	const code =
-		typeof body === 'object' && body !== null && 'error_code' in body
-			? body.error_code
-			: null;
-
-	return typeof code === 'string'
-		? (GATE_BY_ERROR_CODE.get(code) ?? null)
-		: null;
-}
+export const sessionGate = z
+	.instanceof(Error)
+	.transform((error) => error.cause)
+	.pipe(z.object({ error_code: z.string() }))
+	.transform(({ error_code }) => GATE_BY_ERROR_CODE.get(error_code) ?? null)
+	.catch(null);
 
 // The router's default error component: the Session gate, or the router's own.
 export function RouterError({ error, ...props }: ErrorComponentProps) {
-	const state = sessionGateFor(error);
+	const state = sessionGate.parse(error);
 
 	return state === null ? (
 		<ErrorComponent error={error} {...props} />
@@ -57,10 +53,12 @@ export function RouterError({ error, ...props }: ErrorComponentProps) {
 
 export function SessionGate({ state }: { state: GateState }) {
 	const { brand, signIn } = useLoaderData({ from: '__root__' });
+
 	const way =
 		signIn === 'portal'
 			? { ended: m.gate_sign_in_portal(), action: m.gate_action_portal() }
 			: { ended: m.gate_sign_in_entra(), action: m.gate_action_entra() };
+
 	const [title, description] =
 		state === 'no-session'
 			? [m.gate_sign_in_title(), way.ended]

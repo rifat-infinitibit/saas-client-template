@@ -6,7 +6,7 @@ import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query
 
 import {
 	RouterError,
-	sessionGateFor,
+	sessionGate,
 } from '@/features/auth/components/session-gate';
 import { adoptLaunch } from '@/features/auth/lib/launch';
 
@@ -18,7 +18,7 @@ setIconSprite(iconSprite);
 
 // Thrown to the gate, never retried: an ended Session does not come back.
 // Anything else stays on the Screen that asked.
-const isSessionError = (error: Error) => sessionGateFor(error) !== null;
+const isSessionError = (error: Error) => sessionGate.parse(error) !== null;
 
 export async function getRouter() {
 	// Before the router reads the address bar, so no screen ever sees the

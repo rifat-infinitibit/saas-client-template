@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { IDENTITY_PATH, type Identity } from '@/features/api/lib/api';
+import {
+	IDENTITY_PATH,
+	type Identity,
+	identitySchema,
+} from '@/features/api/lib/api';
 
 // By hand: the proxy shapes the Identity, so no Service spec describes it.
 export function useIdentity() {
@@ -21,5 +25,5 @@ async function readIdentity(): Promise<Identity> {
 			cause: await response.json().catch(() => null),
 		});
 
-	return response.json() as Promise<Identity>;
+	return identitySchema.parse(await response.json());
 }
