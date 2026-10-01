@@ -541,7 +541,7 @@
 			}
 		},
 		{
-			"files": ["src/**/*.tsx", "lint/fixtures/**/*.tsx"],
+			"files": ["src/**/*.tsx"],
 			"rules": {
 				"shadcn/no-restyle": [
 					"warn",

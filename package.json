@@ -8,7 +8,7 @@
 		"build": "vite build",
 		"start": "node --env-file-if-exists=.env .output/server/index.mjs",
 		"test": "vitest run",
-		"lint": "oxlint --deny-warnings --ignore-pattern='lint/fixtures/**'",
+		"lint": "oxlint --deny-warnings",
 		"format": "oxfmt",
 		"format:check": "oxfmt --check",
 		"type:check": "pnpm i18n:compile && tsc",
