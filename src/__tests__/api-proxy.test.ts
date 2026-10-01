@@ -1,8 +1,8 @@
+import { gzipSync } from 'node:zlib';
 // @vitest-environment node
 
-import { gzipSync } from 'node:zlib';
-
 import { http, HttpResponse } from 'msw';
+import { z } from 'zod';
 
 import { APPLICATION_NAME, FACADE_PREFIX } from '@/application';
 import { FORWARDED_TAGS } from '@/features/api/lib/api';
@@ -11,13 +11,18 @@ import { server } from '@/testing/msw';
 import { respond } from '@/testing/respond';
 
 const TOKEN = 'header.payload.signature';
+
 const SERVICE_URL = 'https://service.example.com';
+
 const PLATFORM_AUTH_URL = 'https://auth.platform.example.com';
+
 const GT_URL = 'https://gt.example.com';
+
 // Any forwarded tag, so the proxy is tested with whichever the Application has.
 const [TAG] = FORWARDED_TAGS;
 
 const SESSION = `__Host-${APPLICATION_NAME}-session=${TOKEN}`;
+
 const ENDED = [
 	`__Host-${APPLICATION_NAME}-session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
 	`__Host-${APPLICATION_NAME}-refresh=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`,
@@ -38,7 +43,11 @@ describe('forwarding to the Service in SaaS', () => {
 	});
 
 	it('turns the Session cookie into a bearer and passes the answer back', async () => {
-		const seen: Record<string, unknown>[] = [];
+		const seen: {
+			url: string;
+			headers: Record<string, string>;
+			body: unknown;
+		}[] = [];
 
 		server.use(
 			http.post(`${SERVICE_URL}/api/${TAG}`, async ({ request }) => {
@@ -176,7 +185,9 @@ describe('renewing an expired SaaS Session', () => {
 		return http.post(
 			`${PLATFORM_AUTH_URL}/api/v1/auth/token/refresh`,
 			async ({ request }) => {
-				const body = (await request.json()) as { refresh_token: string };
+				const body = z
+					.object({ refresh_token: z.string() })
+					.parse(await request.json());
 
 				renewals.push(body.refresh_token);
 

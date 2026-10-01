@@ -7,7 +7,7 @@ import { holdSession } from '@/testing/session';
 import de from '../../messages/de.json';
 import en from '../../messages/en.json';
 
-const keys = (catalogue: object) =>
+const keys = (catalogue: Record<string, string>) =>
 	Object.keys(catalogue)
 		.filter((key) => key !== '$schema')
 		.sort();
