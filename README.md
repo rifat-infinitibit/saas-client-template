@@ -221,4 +221,4 @@ Work moves from `dev` to `stage` to `main`. `dev` is the default branch.
 
 - `pre-commit` runs `pnpm lint-staged`, which lints and formats the staged files.
 - `commit-msg` runs commitlint on the message.
-- `pre-push` rejects a branch name that is not `main`, `stage`, `dev` or `type/scope/slug`.
+- `pre-push` rejects a push to a remote branch whose name is not `main`, `stage`, `dev` or `type/scope/slug`. Tags and branch deletions pass.
