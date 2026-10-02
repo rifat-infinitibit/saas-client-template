@@ -2,9 +2,9 @@ FROM node:22-slim AS build
 WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-# `prepare` would need git and the message files; the build compiles messages
-# itself.
-RUN pnpm install --frozen-lockfile --ignore-scripts
+# `prepare` compiles messages, which are not in the image yet; the build
+# compiles them itself. `rebuild` still runs the builds `allowBuilds` permits.
+RUN pnpm install --frozen-lockfile --ignore-scripts && pnpm rebuild
 COPY . .
 RUN pnpm build
 
