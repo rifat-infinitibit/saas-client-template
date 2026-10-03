@@ -38,7 +38,7 @@ User should not have to ask you for your opinion explicitly. Always evaluate wha
 
 ## Checks
 
-`pnpm lint` (oxlint, type-aware), `pnpm format` (oxfmt), `pnpm type:check`, `pnpm test`, `pnpm build`. Commits are Conventional Commits (`pnpm commit` prompts); branches are `type/scope/slug`. oxlint and oxfmt replace ESLint and Prettier (ADR 0001).
+`pnpm lint` (oxlint, type-aware), `pnpm format` (oxfmt), `pnpm type:check`, `pnpm test`, `pnpm build`. Commits are Conventional Commits (`pnpm commit` prompts); branches are `type/slug` or `type/scope/slug`. oxlint and oxfmt replace ESLint and Prettier (ADR 0001).
 
 Tests drive the client through one of two seams, with every upstream stubbed by MSW (`src/testing/msw.ts`); an undeclared request fails the test:
 

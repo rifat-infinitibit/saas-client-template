@@ -206,7 +206,7 @@ Mock the Service over HTTP, never the hooks. `holdSession()` from `src/testing/s
 
 Work moves from `dev` to `stage` to `main`. `dev` is the default branch.
 
-1.  Branch from `dev` as `type/scope/slug`, such as `feat/notes/create-dialog`.
+1.  Branch from `dev` as `type/slug` or `type/scope/slug`, such as `fix/login-redirect` or `feat/notes/create-dialog`.
 2.  Run the checks: `pnpm lint`, `pnpm format:check`, `pnpm type:check`, `pnpm test`.
 3.  Commit with Conventional Commits. `pnpm commit` prompts for one, and commitlint rejects any other message.
 4.  Push the branch and open a pull request against `dev`. A squash merge turns the pull request title into the commit, so write the title as a Conventional Commit.
@@ -215,10 +215,10 @@ Work moves from `dev` to `stage` to `main`. `dev` is the default branch.
 
 - Promote `dev` to `stage` for testing, and `stage` to `main` to release. Promote with a merge commit, never a squash, because semantic-release reads the individual commits.
 - `main` holds releases only. semantic-release reads the Conventional Commits since the last tag, and when one calls for a release it tags the version and publishes a GitHub release with the notes. The GitHub releases are the changelog. `fix` makes a patch, `feat` a minor and a `BREAKING CHANGE` footer a major. Other types release nothing.
-- A hotfix branches from `main` as `fix/scope/slug` and merges into `main`. Once semantic-release publishes it, merge `main` into `stage` and `stage` into `dev`, so every branch gets the fix.
+- A hotfix branches from `main` as `fix/slug` or `fix/scope/slug` and merges into `main`. Once semantic-release publishes it, merge `main` into `stage` and `stage` into `dev`, so every branch gets the fix.
 
 ### Git hooks
 
 - `pre-commit` runs `pnpm lint-staged`, which lints and formats the staged files.
 - `commit-msg` runs commitlint on the message.
-- `pre-push` rejects a push to a remote branch whose name is not `main`, `stage`, `dev` or `type/scope/slug`. Tags and branch deletions pass.
+- `pre-push` rejects a push to a remote branch whose name is not `main`, `stage`, `dev`, `type/slug` or `type/scope/slug`. Tags and branch deletions pass.
